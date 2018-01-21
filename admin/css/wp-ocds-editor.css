@@ -1,0 +1,172 @@
+/**
+ * OCDS Wordpress plugin styles for admin UI
+ */
+.ocds-release-editor {
+    width: 100%;
+    min-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+    padding: 1em;
+    font-family: sans-serif;
+    font-size: 13px;
+    color: #444
+}
+.ocds-release-editor h1, .ocds-release-editor h2 {
+    border-bottom: 1px solid gray;
+}
+.ocds-title-pull-down {
+    padding-top: 2em;
+}
+.ocds-release-editor h3 {
+    padding: 4px 15px;
+    margin: 0px;
+    background: #458041;
+    color: white;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+.ocds-release-editor-content h3  {
+    background: #698863;
+}
+.ocds-release-editor h3 button, .ocds-release-editor h4 button, .ocds-release-editor h2 button {
+    margin-right: 2em;
+}
+.ocds-release-editor h4 {
+    padding-left: 1.5em;
+    margin-top: 0px;
+    font-size: 115%;
+}
+h3.ocds-section-title {
+    margin-top:1em;
+}
+.ocds-release-editor sub {
+    font-size: 70%;
+}
+.ocds-release-editor button {
+    background-color: #888; /* Green */
+    border: none;
+    color: white;
+    padding: 4px 7px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 13px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    margin-left: 4px;
+    border-radius: 6px;
+}
+.ocds-release-editor button.negative {
+    background-color: #d87;
+}
+.ocds-release-editor button.positive {
+    background-color: #7a8;
+}
+.ocds-release-editor button.neutral {
+    background-color: #a97;
+}
+.ocds-release-editor {
+    padding: 0;
+    margin-bottom: 1em;
+    background: #F8FFF8;
+    border-radius: 10px;
+}
+.ocds-release-editor-content {
+    border-left: 15px solid #DDD;
+    padding: 0;
+    border-bottom-left-radius: 10px;
+}
+.ocds-section-editor-content, .ocds-document-editor-content, .ocds-organization-editor-content, .ocds-object-editor {
+    margin-left: 10px;
+    border-left: 1px solid #DDD;
+    border-bottom: 1px solid #DDD;
+    padding: 0;
+    padding-bottom: 1em;
+}
+.ocds-release-editor-content > hr, .ocds-section-editor-content > hr, .ocds-document-editor-content > hr, ocds-object-editor-content > hr {
+
+}
+.ocds-object-editor {
+    margin: 1em;
+}
+.ocds-organization-title, .ocds-document-title , .ocds-milestone-title, .ocds-object-title {
+    padding: 4px 15px;
+    margin: 0px;
+    background: #666;
+    color: white;
+}
+.ocds-organization-editor h5, .ocds-document-editor h5, .ocds-milestone-editor h5, .ocds-object-editor h5 {
+    text-align: right;
+    font-size: 100%;
+    font-weight: bold;
+    width: 30%;
+}
+.ocds-fields-group {
+    background: #e8e8e8;
+    border: 1px solid #d4d4d4;
+}
+.input-row {
+    padding: 5px;
+}
+.input-row label {
+    padding: 4px;
+    width: 30%;
+    text-align: right;
+    font-weight: bold;
+    display: inline-block;
+}
+.input-row span.input, .input-row .ocds-field-editor {
+    display: inline-block;
+    padding: 4px;
+    vertical-align: middle;
+    width: 60%;
+}
+.input-row span.input-date {
+    display: inline-block;
+    padding: 4px;
+    vertical-align: middle;
+    min-width: 60%;
+}
+.amount-field .input-pre {
+    width: auto !important;
+}
+.amount-field .input-post {
+    width: 6em !important;
+}
+.amount-field input {
+    width: 5em !important;
+}
+.input-row span.input-pre {
+    display: inline-block;
+    padding: 4px;
+    vertical-align: middle;
+    width: 3em;
+}
+.input-row span.input-post {
+    display: inline-block;
+    padding: 4px;
+    vertical-align: middle;
+    width: auto;
+    max-width: 60%;
+}
+.input-row span.input input, .input-row span.input-pre input, .input-row span.input-post input {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    height: 2.0em;
+    padding: 0.1em 0.7em;
+    width: 100%;
+}
+.multiline-input {
+    display: inline-block;
+    vertical-align: middle;
+    width: 60%;
+    padding-left: 1em;
+}
+.multiline-input select, .multiline-input textarea {
+    width: 100%;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
