@@ -122,17 +122,7 @@ var OCDS = {
                 "planning": undefined,
                 "awards": [],
                 "contracts": [],
-                "ocmp_extras": {
-                    "location": { "lat": 0, "lon": 0, "department": "Guatemala", "municipality": "Guatemala" },
-                    "identification": {
-                        "NOG": "",
-                        "SNIP": ""
-                    },
-                    "progress": {
-                        "financial": 0,
-                        "physical": 0
-                    }
-                }
+                "ocmp_extras": undefined
             }],
             "extensions":[
                 /* TODO put the schema in this github url */
@@ -142,6 +132,18 @@ var OCDS = {
     },
     version: "1.1",
     defaults: {
+        ocmp_extras: {
+            "year": 2000,
+            "location": { "lat": 0, "lon": 0, "department": "Guatemala", "municipality": "Guatemala" },
+            "identification": {
+                "NOG": "",
+                "SNIP": ""
+            },
+            "progress": {
+                "financial": 0,
+                "physical": 0
+            }
+        },
         planning: {
             "budget": {
                 "id": ""

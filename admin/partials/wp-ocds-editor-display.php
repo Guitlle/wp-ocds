@@ -27,16 +27,25 @@
             </h3>
             <div class="ocds-release-editor-content" v-if="vmodel.expandedItems['rls-'+releaseIdx]">
                 <div class="ocds-section-editor-content">
-                    <h4 class="ocds-title-pull-down">Campos extra de Ojo Con Mi Pisto:</h4>
-                    <div class="input-row"> <label>NOG: </label> <span class="input"><input  v-model="model.releases[releaseIdx].ocmp_extras.identification.NOG" > </span></div>
-                    <div class="input-row"> <label>SNIP: </label> <span class="input"><input  v-model="model.releases[releaseIdx].ocmp_extras.identification.SNIP" > </span></div>
-                    <div class="input-row"> <label>Departamento: </label> <span class="input"><input  v-model="model.releases[releaseIdx].ocmp_extras.location.department" > </span></div>
-                    <div class="input-row"> <label>Municipio: </label> <span class="input"><input  v-model="model.releases[releaseIdx].ocmp_extras.location.municipality" > </span></div>
-                    <div class="input-row"> <label>Coordenadas: </label> <div class="multiline-input">
-                        Latitud <input  v-model="model.releases[releaseIdx].ocmp_extras.location.lat" > <br>
-                        Longitud <input  v-model="model.releases[releaseIdx].ocmp_extras.location.lon" >
-                    </div></div>
-                    <hr>
+                    <div v-if="model.releases[releaseIdx].releases[0].ocmp_extras">
+                        <h4 class="ocds-title-pull-down">Campos extra de Ojo Con Mi Pisto:</h4>
+                        <div class="input-row"> <label>NOG: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.identification.NOG" > </span></div>
+                        <div class="input-row"> <label>SNIP: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.identification.SNIP" > </span></div>
+                        <div class="input-row"> <label>Año de ejercicio: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.year" > </span></div>
+                        <div class="input-row"> <label>Departamento: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.location.department" > </span></div>
+                        <div class="input-row"> <label>Municipio: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.location.municipality" > </span></div>
+                        <div class="input-row"> <label>Coordenadas: </label> <div class="multiline-input">
+                            Latitud <input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.location.lat" > <br>
+                            Longitud <input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.location.lon" >
+                        </div></div>
+                        <div class="input-row"> <label>Avance financiero (%): </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.progress.financial" > </span></div>
+                        <div class="input-row"> <label>Avance físico (%): </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.progress.physical" > </span></div>
+
+                        <hr>
+                    </div>
+                    <div v-else>
+                        <button class="positive" type="button" @click="toggleSection(releaseIdx, 'ocmp_extras')">Habilitar información extra</button>
+                    </div>
                     <h4 class="ocds-title-pull-down">Release package information</h4>
                     <div class="input-row"> <label>URI: </label> <span class="input"><input v-model="model.releases[releaseIdx].uri" > </span></div>
                     <div class="input-row"> <label>Fecha de publicación: </label> <span class="input"><pikaday v-model="model.releases[releaseIdx].publishedDate"></pikaday></span></div>
