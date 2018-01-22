@@ -30,42 +30,73 @@ require_once ABSPATH . '/wp-admin/includes/taxonomy.php';
 class Wp_Ocds_API {
     public function __construct( $base_url) {
         $this->base_url = $base_url;
+        $this->per_page = 10;
     }
 
     public function summary () {
-
+        $pagen = intval($pagen);
+        $args = array( "posts_per_page" => $this->per_page, "offset" => ($pagen-1) * $this->per_page, "post_type" => "ocdsrecord" );
+        $records = get_posts( $args );
+        echo "{\"next_page\": \"".$this->base_url."/records/page/".strval($pagen+1)."\", ".
+             ( ($pagen > 1) ?"\"previous_page\": \"".$this->base_url."/records/page/".strval($pagen-1)."\", " : "").
+             " \"records\":[";
+        foreach ($records as $record) {
+            $data = get_post_meta($record->ID, "wp-ocds-record-data");
+            $id = get_post_meta($record->ID, "wp-ocds-record-id");
+            echo $data[0].", ";
+        }
+        echo "]}";
     }
 
     public function record( $id ) {
-
+        $searchArgs = array(
+            "post_type"  => "ocdsrecord",
+            "meta_key"   => "wp-ocds-record-id",
+            "meta_value" => addslashes($id)
+        );
+        $posts = query_posts( $searchArgs );
+        $data = get_post_meta($posts[0]->ID, "wp-ocds-record-data");
+        echo $data[0];
     }
 
     public function records_page( $pagen ) {
-
+        $pagen = intval($pagen);
+        $args = array( "posts_per_page" => $this->per_page, "offset" => ($pagen-1) * $this->per_page, "post_type" => "ocdsrecord" );
+        $records = get_posts( $args );
+        echo "{\"next_page\": \"".$this->base_url."/records/page/".strval($pagen+1)."\", ".
+             ( ($pagen > 1) ?"\"previous_page\": \"".$this->base_url."/records/page/".strval($pagen-1)."\", " : "").
+             " \"records\":[";
+        foreach ($records as $record) {
+            $data = get_post_meta($record->ID, "wp-ocds-record-data");
+            $id = get_post_meta($record->ID, "wp-ocds-record-id");
+            echo $data[0].", ";
+        }
+        echo "]}";
     }
 
     public function records_handler( $route ) {
-        switch( $route[0] ) {
+        switch( $route[2] ) {
             case "summary":
                 /* summary for map data */
-                return $this->summary()
+                return $this->summary();
             case "page":
-                return $this->records_page(intval($route[1]));
+                return $this->records_page(intval($route[2]));
             default:
-                if (count($route) == 2) {
-                    return $this->record($route[1]);
+                if (count($route) == 3) {
+                    return $this->record($route[2]);
                 }
         }
+        return $this->records_page(1);
     }
 
-    public resources() {
+    public function resources() {
         ?>{ "resources": [ { "name": "records", "description": "OCDS records", "url": "<? echo $this->base_url; ?>/records" } ] }<?
     }
 
     public function router( $input ) {
         $route = explode("/", $input);
-        if ($route AND count($route) == 0) return;
-        switch($route[0]) {
+        if ($route AND count($route) < 2) return;
+        switch($route[1]) {
             case "records":
                 return $this->records_handler($route);
         }
@@ -73,9 +104,8 @@ class Wp_Ocds_API {
     }
 }
 
-
-$base = get_site_url() . "/wp-content/wp-ocds/ocds-api.php";
+/* TODO: Use custom wordpress htaccess routes. For now, hardcode ugly php file. */
+$base = get_site_url() . "/wp-content/plugins/wp-ocds/ocds-api.php?";
 $api = new Wp_Ocds_API( $base );
 $query = $_SERVER["QUERY_STRING"];
-
 $api->router($query);
