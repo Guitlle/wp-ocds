@@ -118,7 +118,11 @@ class Wp_Ocds_Editor {
 	public function save() {
 		$post_id = get_the_ID();
 		if (isset($_POST["wp_ocds_data"])) {
-			update_post_meta($post_id, "wp-ocds-record-data", $_POST["wp_ocds_data"]);
+			$data = json_decode(stripslashes($_POST["wp_ocds_data"]));
+			if (is_object($data)) {
+				update_post_meta($post_id, "wp-ocds-record-data", $_POST["wp_ocds_data"]);
+				update_post_meta($post_id, "wp-ocds-record-id", $data->releases[0]->id);
+			}
 		}
 	}
 

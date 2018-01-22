@@ -106,7 +106,7 @@ var OCDS = {
         var today = new moment();
         return {
             "version": OCDS.version,
-            "uri": OCDSConfig.uriPrefix + "/ocds-" + id + ".json",
+            "uri": OCDSConfig.uriPrefix + "records/" + id,
             "publisher": OCDSConfig.publisher,
             "publishedDate": OCDSConfig.publishedDate,
             "license": OCDSConfig.license,

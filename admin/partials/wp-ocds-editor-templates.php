@@ -1,9 +1,8 @@
 <?php
 /**
- *
+ * Vue.js templates for the editor.
  */
 ?>
-<!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <script  type="text/x-template" id="vtemplate-ocds-period">
     <div class="ocds-field-editor ocds-fields-group">
         <template v-if="period != null">
