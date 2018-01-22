@@ -9,8 +9,13 @@
  * @package    Wp_Ocds
  */
 
+/* Load WordPress */
+require_once '../../../wp-load.php';
+require_once ABSPATH . '/wp-admin/includes/taxonomy.php';
+
+
 /**
- * REST API to serve OCDS data.
+ * REST-like API to serve OCDS data.
  *
  * This class will serve the list of works, paginated:
  *      ocds-api.php?/page=1
@@ -20,12 +25,11 @@
  *      ocds-api.php?/summary
  *
  * @package    Wp_Ocds
- * @subpackage Wp_Ocds/public
  * @author     Guillermo Ambrosio <yo@guilles.website>
  */
 class Wp_Ocds_API {
-    public function __construct( $plugin_name, $version ) {
-        $query = $_HTTP["QUERY_STRING"];
+    public function __construct( $base_url) {
+        $this->base_url = $base_url;
     }
 
     public function summary () {
@@ -40,9 +44,38 @@ class Wp_Ocds_API {
 
     }
 
-    public function router(url) {
+    public function records_handler( $route ) {
+        switch( $route[0] ) {
+            case "summary":
+                /* summary for map data */
+                return $this->summary()
+            case "page":
+                return $this->records_page(intval($route[1]));
+            default:
+                if (count($route) == 2) {
+                    return $this->record($route[1]);
+                }
+        }
+    }
 
+    public resources() {
+        ?>{ "resources": [ { "name": "records", "description": "OCDS records", "url": "<? echo $this->base_url; ?>/records" } ] }<?
+    }
+
+    public function router( $input ) {
+        $route = explode("/", $input);
+        if ($route AND count($route) == 0) return;
+        switch($route[0]) {
+            case "records":
+                return $this->records_handler($route);
+        }
+        return $this->resources();
     }
 }
 
-new Wp_Ocds_API();
+
+$base = get_site_url() . "/wp-content/wp-ocds/ocds-api.php";
+$api = new Wp_Ocds_API( $base );
+$query = $_SERVER["QUERY_STRING"];
+
+$api->router($query);
