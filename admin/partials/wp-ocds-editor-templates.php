@@ -156,9 +156,9 @@
         <h4 class="ocds-object-title">
             <button type="button" class="positive" @click="show=!show">{{ show? "&uarr;": "&darr;"}}</button>
             <button type="button" style="float: right;" class="negative" @click="removeObject"> Delete </button>
-            [ {{transaction.id}} ] {{transaction.value.currency}} {{transaction.value.amount}}
+            [ {{transaction.id}} ] {{transaction.value ? transaction.value.currency : "GTQ" }} {{transaction.value? transaction.value.amount : "0.00"}}
             <br>
-            <sub>{{document.date}}</sub>
+            <sub>{{transaction.date}}</sub>
         </h4>
         <div class="ocds-object-editor-content" v-if="show">
             <div class="input-row"> <label>Id: </label> <span class="input"><input v-model.lazy="transaction.id" > </span></div>
@@ -168,14 +168,14 @@
             <div class="input-row"> <label>Monto: </label> <ocds-amount v-model="transaction.value"></ocds-amount></div>
             <div class="input-row"> <label>Emisor del pago: </label>
                 <div class="multiline-input">
-                    <select v-model="contract.payer">
+                    <select v-model="transaction.payer">
                         <option v-for="party in parties" v-bind:value="{id: party.id, name: party.name}"> {{party.id}} - {{party.name}}</option>
                     </select>
                 </div>
             </div>
             <div class="input-row"> <label>Receptor del pago: </label>
                 <div class="multiline-input">
-                    <select v-model="contract.payee">
+                    <select v-model="transaction.payee">
                         <option v-for="party in parties" v-bind:value="{id: party.id, name: party.name}"> {{party.id}} - {{party.name}}</option>
                     </select>
                 </div>
@@ -216,7 +216,7 @@
                 <label>Período de tiempo del contrato adjudicado: </label>
                 <ocds-period v-model="award.contractPeriod"></ocds-period>
             </div>
-            <h4>Tipos de productos <button type="button" class="positive"  @click="insertObjectToList(award.items, 'item')"> + Agregar</button></h4>
+            <h4>Tipos de productos <button type="button" class="positive"  @click="ensureInsertObjectToList(award, 'items', 'item')"> + Agregar</button></h4>
             <ocds-item
                 v-for="(item, index) in award.items"
                 :value="item"
@@ -225,7 +225,7 @@
                 @remove="removeObjectFromList(award.items, index)">
             </ocds-item>
             <hr>
-            <h4>Documentos de la adjudicación <button type="button" class="positive"  @click="insertObjectToList(award.documents, 'document')"> + Agregar documento</button></h4>
+            <h4>Documentos de la adjudicación <button type="button" class="positive"  @click="ensureInsertObjectToList(award, 'documents', 'document')"> + Agregar documento</button></h4>
             <ocds-document
                 v-for="(document, index) in award.documents"
                 :value="document"
@@ -273,7 +273,7 @@
                 <label>Período de tiempo del contrato adjudicado: </label>
                 <ocds-period v-model="contract.contractPeriod"></ocds-period>
             </div>
-            <h4>Tipos de productos <button type="button" class="positive"  @click="insertObjectToList(contract.items, 'item')"> + Agregar</button></h4>
+            <h4>Tipos de productos <button type="button" class="positive"  @click="ensureInsertObjectToList(contract, 'items', 'item')"> + Agregar</button></h4>
             <ocds-item
                 v-for="(item, index) in contract.items"
                 :value="item"
@@ -282,7 +282,7 @@
                 @remove="removeObjectFromList(contract.items, index)">
             </ocds-item>
             <hr>
-            <h4>Documentos generales del contrato <button type="button" class="positive"  @click="insertObjectToList(contract.documents, 'document')"> + Agregar documento</button></h4>
+            <h4>Documentos generales del contrato <button type="button" class="positive"  @click="ensureInsertObjectToList(contract, 'documents', 'document')"> + Agregar documento</button></h4>
             <ocds-document
                 v-for="(document, index) in contract.documents"
                 :value="document"
@@ -291,7 +291,7 @@
                 @remove="removeObjectFromList(contract.documents, index)">
             </ocds-document>
             <hr>
-            <h4>Metas del contrato <button type="button" class="positive"  @click="insertObjectToList(contract.milestones, 'document')"> + Agregar meta</button></h4>
+            <h4>Metas del contrato <button type="button" class="positive"  @click="ensureInsertObjectToList(contract, 'milestones', 'document')"> + Agregar meta</button></h4>
             <ocds-milestone
                 v-for="(milestone, index) in contract.milestones"
                 :value="milestone"
@@ -300,7 +300,7 @@
                 @remove="removeObjectFromList(contract.milestones, index)">
             </ocds-milestone>
             <hr>
-            <h4>Transacciones  <button type="button" class="positive"  @click="insertObjectToList(contract.implementation.transactions, 'transaction')"> + Agregar transacción</button></h4>
+            <h4>Transacciones  <button type="button" class="positive"  @click="ensureInsertObjectToList(contract.implementation, 'transactions', 'transaction')"> + Agregar transacción</button></h4>
                 <ocds-transaction
                     v-for="(transaction, index) in contract.implementation.transactions"
                     :value="transaction"
@@ -318,7 +318,7 @@
                 @remove="removeObjectFromList(contract.implementation.milestones, index)">
             </ocds-milestone>
             <hr>
-            <h4>Documentos sobre la implementación del contrato <button type="button" class="positive"  @click="insertObjectToList(contract.implementation.documents, 'document')"> + Agregar documento</button></h4>
+            <h4>Documentos sobre la implementación del contrato <button type="button" class="positive"  @click="ensureInsertObjectToList(contract.implementation, 'documents', 'document')"> + Agregar documento</button></h4>
             <ocds-document
                 v-for="(document, index) in contract.implementation.documents"
                 :value="document"

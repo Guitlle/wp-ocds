@@ -40,7 +40,8 @@
                         </div></div>
                         <div class="input-row"> <label>Avance financiero (%): </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.progress.financial" > </span></div>
                         <div class="input-row"> <label>Avance físico (%): </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.progress.physical" > </span></div>
-
+                        <div class="input-row"> <label>Alcalde a cargo: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.alcalde" > </span></div>
+                        <div class="input-row"> <label>Partido político: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.partido" > </span></div>
                         <hr>
                     </div>
                     <div v-else>
@@ -69,7 +70,7 @@
                         </div>
                     </div>
                 </div>
-                <h3>Partes Interesadas <button type="button" class="positive" @click="insertObjectToList(model.releases[releaseIdx].releases[0].parties, 'organization')"> + </button> </h3>
+                <h3>Partes Interesadas <button type="button" class="positive" @click="ensureInsertObjectToList(model.releases[releaseIdx].releases[0],  'parties', 'organization')"> + </button> </h3>
                     <ocds-organization
                         v-for="(party, index) in model.releases[releaseIdx].releases[0].parties"
                         :value="party"
@@ -99,16 +100,16 @@
                     <div class="input-row"> <label>Id del proyecto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.projectID" > </span></div>
                     <div class="input-row"> <label>URI del presupuesto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.uri" > </span></div>
                     <hr>
-                    <h4>Documentos sobre la planificación <button type="button" class="positive"  @click="insertObjectToList(model.releases[releaseIdx].releases[0].planning.documents, 'document')"> + Agregar documento</button></h4>
+                    <h4>Documentos sobre la planificación <button type="button" class="positive"  @click="ensureInsertObjectToList(model.releases[releaseIdx].releases[0].planning, 'documents', 'document')"> + Agregar documento</button></h4>
                     <ocds-document
                         v-for="(document, index) in model.releases[releaseIdx].releases[0].planning.documents"
                         :value="document"
                         :index="index"
                         :key="releaseIdx+'-plan-doc-'+document.id"
-                        @remove="removeObjectFromList(document in model.releases[releaseIdx].releases[0].planning.documents, index)">
+                        @remove="removeObjectFromList(model.releases[releaseIdx].releases[0].planning.documents, index)">
                     </ocds-document>
                     <hr>
-                    <h4>Metas <button type="button" class="positive"  @click="insertObjectToList(model.releases[releaseIdx].releases[0].planning.milestones, 'milestone')"> + Agregar</button></h4>
+                    <h4>Metas <button type="button" class="positive"  @click="ensureInsertObjectToList(model.releases[releaseIdx].releases[0].planning, 'milestones', 'milestone')"> + Agregar</button></h4>
                     <ocds-milestone
                         v-for="(milestone, index) in model.releases[releaseIdx].releases[0].planning.milestones"
                         :value="milestone"
@@ -233,7 +234,7 @@
                             </div>
                         </div>
                     </div>
-                    <h4>Tipos de productos <button class="positive"  @click="insertObjectToList(model.releases[releaseIdx].releases[0].tender.items, 'item')"> + Agregar</button></h4>
+                    <h4>Tipos de productos <button type="button" class="positive"  @click="ensureInsertObjectToList(model.releases[releaseIdx].releases[0].tender, 'items', 'item')"> + Agregar</button></h4>
                     <ocds-item
                         v-for="(item, index) in model.releases[releaseIdx].releases[0].tender.items"
                         :value="item"
