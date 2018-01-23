@@ -35,15 +35,34 @@ class Wp_Ocds_API {
 
     public function summary () {
         $pagen = intval($pagen);
-        $args = array( "posts_per_page" => $this->per_page, "offset" => ($pagen-1) * $this->per_page, "post_type" => "ocdsrecord" );
+        $args = array( "numberposts" => -1, "post_type" => "ocdsrecord" );
         $records = get_posts( $args );
-        echo "{\"next_page\": \"".$this->base_url."/records/page/".strval($pagen+1)."\", ".
-             ( ($pagen > 1) ?"\"previous_page\": \"".$this->base_url."/records/page/".strval($pagen-1)."\", " : "").
-             " \"records\":[";
+        echo "{\"records\":[";
         foreach ($records as $record) {
             $data = get_post_meta($record->ID, "wp-ocds-record-data");
             $id = get_post_meta($record->ID, "wp-ocds-record-id");
-            echo $data[0].", ";
+            try {
+                $data = json_decode($data);
+                $value = 0;
+                foreach( $data[0]->releases[0]->awards as $adjudicacion ) {
+                    if ($adjudicacion->value->currency == "GTQ")
+                        $value  += floatval($adjudicacion->value->amount);
+                }
+
+                $summary = array(
+                    "coordinates" => array(
+                        "lat" => , "lon" => ),
+                    "municipality" => $data[0]->releases[0]->ocmp_extras->location->municipality,
+                    "name" => $data[0]->releases[0]->tender->title,
+                    "description" => $data[0]->releases[0]->tender->description,
+                    "value_gtq" => $value,
+                    "alcalde" => $data[0]->releases[0]->ocmp_extras->alcalde,
+                    "partido" => $data[0]->releases[0]->ocmp_extras->partido
+                );
+                echo json_encode($summary).",";
+            } catch (Exception $e) {
+                continue;
+            }
         }
         echo "]}";
     }
