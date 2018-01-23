@@ -100,7 +100,7 @@ class Wp_Ocds_Editor {
 		if ($current_screen->post_type === "ocdsrecord") {
 
 			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/wp-ocds-editor.css', array(), $this->version, 'all' );
-			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/pikaday.css', array(), $this->version, 'all' );
+			wp_enqueue_style( "pikaday", plugin_dir_url( __FILE__ ) . 'css/pikaday.css', array(), $this->version, 'all' );
 
 	 		wp_enqueue_script( "underscore", plugin_dir_url( __FILE__ ) . 'js/underscore-min.js', array(), '1.8.3', false );
 			wp_enqueue_script( "vue", plugin_dir_url( __FILE__ ) . 'js/vue.js', array(), '2.5.13', false );
