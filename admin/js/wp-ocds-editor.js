@@ -142,12 +142,16 @@ var OCDS = {
             "progress": {
                 "financial": 0,
                 "physical": 0
-            }
+            },
+            "alcalde": "",
+            "partido": ""
         },
         planning: {
             "budget": {
                 "id": ""
             },
+            documents: [],
+            milestones: []
         },
         organization: {
             "identifier": {
@@ -350,6 +354,24 @@ var OCDSObjectComponent = {
     }
 };
 
+var OCDSObjectUpdaterFactory = function (name) {
+    var mixin = {
+        methods: {
+            update: function() {
+                this.$emit("input", this[name]);
+            }
+        }
+    }
+    mixin.watch = {};
+    mixin.watch[name] = {
+        deep: true,
+        handler: function (after, before) {
+            this.update();
+        }
+    };
+    return mixin;
+};
+
 var OCDSObjectListController = {
     methods: {
         ensureInsertObjectToList: function (container, attribute, entityName) {
@@ -373,7 +395,7 @@ var OCDSObjectListController = {
 };
 
 Vue.component("ocds-period", {
-    mixins: [OCDSObjectComponent],
+    mixins: [OCDSObjectComponent, OCDSObjectUpdaterFactory("period")],
     name: "period",
     template: "#vtemplate-ocds-period",
     defaultValue: {
@@ -382,12 +404,12 @@ Vue.component("ocds-period", {
     }
 });
 Vue.component("ocds-amount", {
-    mixins: [OCDSObjectComponent],
+    mixins: [OCDSObjectComponent, OCDSObjectUpdaterFactory("amount")],
     name: "amount",
     template: "#vtemplate-ocds-amount",
     methods: {
         enableField: function () {
-            this.amount = { currency: "", amount: 0.0 };
+            this.amount = { currency: "GTQ", amount: 0.0 };
         },
         disableField: function () {
             this.amount = null;
