@@ -306,6 +306,7 @@
                     :value="transaction"
                     :index="index"
                     :key="'contract-tx-'+transaction.id"
+                    :parties="parties"
                     @remove="removeObjectFromList(contract.implementation.transactions, index)">
                 </ocds-transaction>
             <hr>

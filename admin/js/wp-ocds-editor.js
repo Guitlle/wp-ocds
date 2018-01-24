@@ -439,6 +439,7 @@ Vue.component('ocds-item', {
 Vue.component('ocds-transaction', {
     mixins: [OCDSObjectComponent],
     name: "transaction",
+    props: ["parties"],
     template: "#vtemplate-ocds-transaction",
 });
 Vue.component('ocds-award', {
