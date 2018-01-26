@@ -14,9 +14,9 @@ def json_serializer(obj):
         return obj.isoformat()
     raise TypeError ("Type %s not serializable" % type(obj))
 
-now = datetime.datetime.now()
-
-BASE_GTC_URI = "http://www.guatecompras.gt"
+now                = datetime.datetime.now()
+BASE_GTC_URI       = "http://www.guatecompras.gt"
+DEFAULT_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'
 
 OCDSConfig = {
     "uriPrefix": "http://www.ojoconmipisto.com/open-contracting/",
@@ -138,7 +138,9 @@ def ParseUglyDate(fecha):
 
 def FetchMainGTCRecord(NOG):
     # Obtener página principal
-    main = requests.get("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG))
+    url = "http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG)
+    print("Fetching main webpage for tender with NOG ", NOG, "at ", url)
+    main = requests.get(url)
     main_soup = BeautifulSoup(main.text, 'html.parser')
 
     if main_soup.find(id="MasterGC_ContentBlockHolder_divDetalleConcurso") is None: raise Exception("No tender data found.")
@@ -153,9 +155,8 @@ def FetchMainGTCRecord(NOG):
         else:
             details_data[attr] = details_cells[i].text.strip()
             details_data["html " + attr] = details_cells[i]
-    return details_data
+
     # Obtener las vistas parciales de las pestañas inferiores
-    """
     formData = {
         "__VIEWSTATE" : main_soup.find(id = "__VIEWSTATE").get("value"),
         "__VIEWSTATEGENERATOR" : main_soup.find( id = "__VIEWSTATEGENERATOR").get("value"),
@@ -163,12 +164,29 @@ def FetchMainGTCRecord(NOG):
         "MasterGC$svrID" : "4",
         "MasterGC_ContentBlockHolder_RadTabStrip1_ClientState" : '{"selectedIndexes":["1"],"logEntries":[],"scrollState":{}}',
         "MasterGC_ContentBlockHolder_RMP_Historia_ClientState" : "",
+        "MasterGC_ContentBlockHolder_wcuConsultaConcursoDetalleEjecucion_RadToolTipManager2_ClientState": "",
         "__EVENTTARGET": "MasterGC$ContentBlockHolder$RadTabStrip1",
         "__EVENTARGUMENT": '{"type":0,"index":"0"}',
         "__ASYNCPOST": "true"
     };
-    tab1 = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData)
-    """
+    tab1 = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
+        'User-Agent': DEFAULT_USER_AGENT
+    })
+
+    lines = tab1.text.splitlines()
+    htmlcontent = ""
+    flag = 0
+    for line in lines:
+        if flag == 1:
+            htmlcontent += "\n" + line
+        if len(line) == 0:
+            continue
+        if line[-1] == "|":
+            flow = 1
+        if line[0] == "|":
+            break
+    tiposAnexo = BeautifulSoup(htmlcontent, "html.parser")
+    return details_data
 
 def UpdateData(baseData, details_data):
     # Assume there is a NOG id
