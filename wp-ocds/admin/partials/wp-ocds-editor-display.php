@@ -137,7 +137,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="input-row"> <label>Categoría secundaria: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].tender.additadditionalProcurementCategories" > </span></div>
+                    <div class="input-row"> <label>Categoría secundaria: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].tender.additionalProcurementCategories" > </span></div>
                     <div class="input-row"> <label>Status: </label>
                         <div class="multiline-input">
                             <select v-model="model.releases[releaseIdx].releases[0].tender.status">
