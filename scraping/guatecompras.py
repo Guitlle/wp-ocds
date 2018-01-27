@@ -59,6 +59,7 @@ def getEmptyOCDSRecord(id):
             "planning": {
                 "documents": []
             },
+            "bids": [],
             "awards": [],
             "contracts": [],
             "ocmp_extras": {
@@ -77,7 +78,8 @@ def getEmptyOCDSRecord(id):
             }
         }],
         "extensions":[
-            "https://raw.githubusercontent.com/Guitlle/wp-ocds/ocmp_extension/schema.json"
+            "https://raw.githubusercontent.com/Guitlle/wp-ocds/ocmp_extension/schema.json",
+            "https://raw.githubusercontent.com/open-contracting/ocds_bid_extension/v1.1.1/extension.json"]
         ],
     }
     return data
@@ -138,6 +140,25 @@ def ParseUglyDate(fecha):
             return None
     return None
 
+def ExtractHTMLFromUglyASPResponse(input):
+    lines = tab.text.splitlines()
+    htmlContent = ""
+    flag = 0
+    for line in lines:
+        line = line.strip()
+        if len(line) == 0:
+            continue
+        if flag == 1:
+            if line[0] == "|" and flag == 1:
+                break
+            else:
+                htmlContent += "\n" + line
+        elif "|MasterGC_ContentBlockHolder_ctl01|" in line:
+            print("found start ", line)
+            flag = 1
+
+    return htmlContent
+
 def FetchMainGTCRecord(NOG):
     # Obtener página principal
     url = "http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG)
@@ -173,25 +194,10 @@ def FetchMainGTCRecord(NOG):
         "__EVENTARGUMENT": '{"type":0,"index":"0"}',
         "__ASYNCPOST": "true"
     };
-    tab1 = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
+    tab = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
         'User-Agent': DEFAULT_USER_AGENT
     })
-
-    lines = tab1.text.splitlines()
-    htmlcontent = ""
-    flag = 0
-    for line in lines:
-        line = line.strip()
-        if len(line) == 0:
-            continue
-        if flag == 1:
-            if line[0] == "|" and flag == 1:
-                break
-            else:
-                htmlcontent += "\n" + line
-        elif "|MasterGC_ContentBlockHolder_ctl01|" in line:
-            print("found start ", line)
-            flag = 1
+    htmlcontent = ExtractHTMLFromUglyASPResponse(tab.text)
 
     tiposAnexo = BeautifulSoup(htmlcontent, "html.parser")
     docs = []
@@ -212,11 +218,64 @@ def FetchMainGTCRecord(NOG):
             if len(found) == 1:
                 SNIP = found[0]
 
-    return details_data, docs
+    details_data["snip"] = SNIP
 
-def UpdateData(baseData, details_data, documents):
+    # Fetch items information
+    formData["MasterGC_ContentBlockHolder_RadTabStrip1_ClientState"] = '{"selectedIndexes":["2"],"logEntries":[],"scrollState":{}}',
+    tab = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
+        'User-Agent': DEFAULT_USER_AGENT
+    })
+    htmlcontent = ExtractHTMLFromUglyASPResponse(tab.text)
+    itemsData = BeautifulSoup(htmlcontent, "html.parser")
+    items = []
+    for row in table.find_all("tr","FilaTablaDetalle"):
+        data = row.find_all("td")
+        item = {
+            "id": len(items),
+            "description": data[0],
+            "quantity": data[1],
+            "unit": data[2]
+        }
+
+    # Awards and tenderers
+    formData["MasterGC_ContentBlockHolder_RadTabStrip1_ClientState"] = '{"selectedIndexes":["3"],"logEntries":[],"scrollState":{}}',
+    tab = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
+        'User-Agent': DEFAULT_USER_AGENT
+    })
+    htmlcontent = ExtractHTMLFromUglyASPResponse(tab.text)
+    tabData = BeautifulSoup(htmlcontent, "html.parser")
+    # TODO : build award and tenderers data
+
+    # Contracting
+    formData["MasterGC_ContentBlockHolder_RadTabStrip1_ClientState"] = '{"selectedIndexes":["4"],"logEntries":[],"scrollState":{}}',
+    tab = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
+        'User-Agent': DEFAULT_USER_AGENT
+    })
+    htmlcontent = ExtractHTMLFromUglyASPResponse(tab.text)
+    tabData = BeautifulSoup(htmlcontent, "html.parser")
+    # TODO : build award and tenderers data
+
+    # Historial
+    formData["MasterGC_ContentBlockHolder_RadTabStrip1_ClientState"] = '{"selectedIndexes":["5"],"logEntries":[],"scrollState":{}}',
+    tab = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
+        'User-Agent': DEFAULT_USER_AGENT
+    })
+    htmlcontent = ExtractHTMLFromUglyASPResponse(tab.text)
+    tabData = BeautifulSoup(htmlcontent, "html.parser")
+    # TODO : build award and tenderers data
+
+
+    return {
+        "base": details_data,
+        "documents": docs,
+        "items": items,
+        "tenderers": tenderers,
+        "awards": awards
+
+def UpdateData(baseData, details_data, documents, items):
     # Assume there is a NOG id
     baseData["releases"][0]["ocmp_extras"]["identification"]["NOG"] = details_data["nog"]
+    baseData["releases"][0]["ocmp_extras"]["identification"]["SNIP"] = details_data["snip"]
 
     # Description
     if "descripción" in details_data:
@@ -335,6 +394,9 @@ def UpdateData(baseData, details_data, documents):
 
         i += 1
 
+    # Products types or items
+    baseData["releases"][0]["tender"]["items"].extend(items)
+
     return baseData
 
 
@@ -343,6 +405,6 @@ if __name__ == "__main__":
     ocid = sys.argv[1]
     nog = sys.argv[2]
     newRecord = getEmptyOCDSRecord(ocid)
-    mainData = FetchMainGTCRecord(nog)
-    newRecord = UpdateData(newRecord, mainData)
+    mainData, documents, items = FetchMainGTCRecord(nog)
+    newRecord = UpdateData(newRecord, mainData, documents, items)
     print( json.dumps(newRecord, indent = 4, sort_keys = True, default=json_serializer ) )
