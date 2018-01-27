@@ -52,10 +52,12 @@ def getEmptyOCDSRecord(id):
             "initiationType": "tender",
             "parties": [],
             "tender": {
-
+                "documents": [],
+                "items": [],
+                "tenderers": []
             },
             "planning": {
-
+                "documents": []
             },
             "awards": [],
             "contracts": [],
@@ -157,6 +159,8 @@ def FetchMainGTCRecord(NOG):
             details_data["html " + attr] = details_cells[i]
 
     # Obtener las vistas parciales de las pestañas inferiores
+
+    # Primero va la vista parcial de documentos anexos:
     formData = {
         "__VIEWSTATE" : main_soup.find(id = "__VIEWSTATE").get("value"),
         "__VIEWSTATEGENERATOR" : main_soup.find( id = "__VIEWSTATEGENERATOR").get("value"),
@@ -177,18 +181,40 @@ def FetchMainGTCRecord(NOG):
     htmlcontent = ""
     flag = 0
     for line in lines:
-        if flag == 1:
-            htmlcontent += "\n" + line
+        line = line.strip()
         if len(line) == 0:
             continue
-        if line[-1] == "|":
-            flow = 1
-        if line[0] == "|":
-            break
-    tiposAnexo = BeautifulSoup(htmlcontent, "html.parser")
-    return details_data
+        if flag == 1:
+            if line[0] == "|" and flag == 1:
+                break
+            else:
+                htmlcontent += "\n" + line
+        elif "|MasterGC_ContentBlockHolder_ctl01|" in line:
+            print("found start ", line)
+            flag = 1
 
-def UpdateData(baseData, details_data):
+    tiposAnexo = BeautifulSoup(htmlcontent, "html.parser")
+    docs = []
+    SNIP = None
+    for table in tiposAnexo.find_all("table", "TablaDetalle"):
+        header = table.find_all("th")
+        if header[0].text == "Tipo de documento(s)":
+            for row in table.find_all("tr","FilaTablaDetalle"):
+                data = row.find_all("td")
+                docs.append({
+                    "type": data[0].text.strip(),
+                    "link": data[1].find("a").get("href").strip(),
+                    "responsible": data[2].text.strip()
+                })
+        elif header[1].text == "SNIP":
+            data = table.find("td").text
+            found = re.findall("SNIP\: (\d*)", data)
+            if len(found) == 1:
+                SNIP = found[0]
+
+    return details_data, docs
+
+def UpdateData(baseData, details_data, documents):
     # Assume there is a NOG id
     baseData["releases"][0]["ocmp_extras"]["identification"]["NOG"] = details_data["nog"]
 
@@ -242,6 +268,72 @@ def UpdateData(baseData, details_data):
     submethod = details_data.get("recepción de ofertas", "")
     if submethod.startswith("Sólo en papel"):
         baseData["releases"][0]["tender"]["submissionMethod"] = "written"
+
+
+    # Documents mapping
+    i = 0
+    for doc in docs:
+        doc = {
+            "description": "",
+            "format": "pdf",
+            "language": "es"
+            "id": i,
+            "title": doc["type"],
+            "url":  doc["link"]
+        }
+        if  doc["type"] == "Anuncio, convocatoria o invitación":
+            doc["documentType"] = "tenderNotice"
+            baseData["releases"][0]["tender"]["documents"].append(doc)
+        elif doc["type"] == "Bases, especificaciones generales o términos de referencia":
+            doc["documentType"] = "technicalSpecifications"
+            baseData["releases"][0]["tender"]["documents"].append(doc)
+        elif doc["type"] == "Boleta de SNIP":
+            doc["documentType"] = "projectPlan"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Criterio de calificación":
+            doc["documentType"] = "evaluationCriteria"
+            baseData["releases"][0]["tender"]["documents"].append(doc)
+        elif doc["type"] == "Dictamen de aprobación de estudio de factibilidad":
+            doc["documentType"] = "x_feasibilityStudyAssessment"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Dictamen de aprobación de impacto ambiental":
+            doc["documentType"] = "x_environmentalImpactAssessment"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Dictamen técnico":
+            doc["documentType"] = "x_technicalAssessment"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Diseño del Proyecto":
+            doc["documentType"] = "x_projectDesign"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Estudio de Factibilidad":
+            doc["documentType"] = "feasibilityStudy"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Estudio de impacto ambiental":
+            doc["documentType"] = "environmentalImpact"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Estudios, diseños o planos":
+            doc["documentType"] = "x_otherStudies"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Modelo de oferta (formulario)":
+            doc["documentType"] = "contractDraft"
+            baseData["releases"][0]["tender"]["documents"].append(doc)
+        elif doc["type"] == "Opinión jurídica":
+            doc["documentType"] = "x_legalOpinion"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Proyecto de bases":
+            doc["documentType"] = "procurementPlan"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+        elif doc["type"] == "Resolución de aprobación de bases":
+            doc["documentType"] = "x_procurementApproval"
+            baseData["releases"][0]["tender"]["documents"].append(doc)
+        elif doc["type"] == "Selección de supervisor de la obra":
+            doc["documentType"] = "x_supervisorSelection"
+            baseData["releases"][0]["tender"]["documents"].append(doc)
+        elif doc["type"] == "Solicitud o requerimiento de bien, servicio o suministro":
+            doc["documentType"] = "needsAssessment"
+            baseData["releases"][0]["planning"]["documents"].append(doc)
+
+        i += 1
 
     return baseData
 
