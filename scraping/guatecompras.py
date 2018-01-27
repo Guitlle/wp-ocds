@@ -27,7 +27,7 @@ OCDSConfig = {
         "uri": "http://www.ojoconmipisto.com"
     },
     "license": "http://opendatacommons.org/licenses/pddl/1.0/",
-    "publishedDate": now.isoformat(),
+    "publishedDate": now,
     "publicationPolicy": "",
     "version": "1.1",
     "language": "es"
@@ -180,11 +180,8 @@ def FetchMainGTCRecord(NOG):
             details_data["html " + attr] = details_cells[i]
 
     # Obtener las vistas parciales de las pestañas inferiores
-<<<<<<< HEAD
 
     # Primero va la vista parcial de documentos anexos:
-=======
->>>>>>> a3fb39764e515315b8d12b033734344dc3a2488c
     formData = {
         "__VIEWSTATE" : main_soup.find(id = "__VIEWSTATE").get("value"),
         "__VIEWSTATEGENERATOR" : main_soup.find( id = "__VIEWSTATEGENERATOR").get("value"),
@@ -197,7 +194,6 @@ def FetchMainGTCRecord(NOG):
         "__EVENTARGUMENT": '{"type":0,"index":"0"}',
         "__ASYNCPOST": "true"
     };
-<<<<<<< HEAD
     tab = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
         'User-Agent': DEFAULT_USER_AGENT
     })
@@ -221,26 +217,6 @@ def FetchMainGTCRecord(NOG):
             found = re.findall("SNIP\: (\d*)", data)
             if len(found) == 1:
                 SNIP = found[0]
-=======
-    tab1 = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
-        'User-Agent': DEFAULT_USER_AGENT
-    })
-
-    lines = tab1.text.splitlines()
-    htmlcontent = ""
-    flag = 0
-    for line in lines:
-        if len(line) == 0:
-            continue
-        if line[-1] == "|":
-            flow = 1
-        if line[0] == "|":
-            break
-        if flag == 1:
-            htmlcontent += "\n" + "line"
-    tiposAnexo = BeautifulSoup(htmlcontent, "html.parser")
-    return details_data
->>>>>>> a3fb39764e515315b8d12b033734344dc3a2488c
 
     details_data["snip"] = SNIP
 
