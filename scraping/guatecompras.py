@@ -33,7 +33,7 @@ OCDSConfig = {
     "language": "es"
 }
 
-def getEmptyOCDSRecord(id):
+def GetEmptyOCDSRecord(id):
     """ Returns an empty OCDS record dictionary
     """
     data = {
@@ -141,6 +141,10 @@ def ParseUglyDate(fecha):
     return None
 
 def ExtractHTMLFromUglyASPResponse(input):
+    """ Extract the HTML from an ASP.NET response obtained from guatecompras.
+    These ajax responses contain lots of fields that are apparently separated
+    by | chars.
+    """
     lines = tab.text.splitlines()
     htmlContent = ""
     flag = 0
@@ -154,12 +158,15 @@ def ExtractHTMLFromUglyASPResponse(input):
             else:
                 htmlContent += "\n" + line
         elif "|MasterGC_ContentBlockHolder_ctl01|" in line:
-            print("found start ", line)
             flag = 1
 
     return htmlContent
 
-def FetchMainGTCRecord(NOG):
+def FetchData(NOG):
+    """ Fetch data from guatecompras website using as input the NOG id.
+    This function returns a dictionary with raw data. This raw data will
+    be used later to build the ocds record
+    """
     # Obtener página principal
     url = "http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG)
     print("Fetching main webpage for tender with NOG ", NOG, "at ", url)
@@ -404,7 +411,7 @@ if __name__ == "__main__":
     print("Guatecompras scraper. Outputs OCDS record.\nUsage: guatecompras.py OCID NOG")
     ocid = sys.argv[1]
     nog = sys.argv[2]
-    newRecord = getEmptyOCDSRecord(ocid)
-    mainData, documents, items = FetchMainGTCRecord(nog)
+    newRecord = GetEmptyOCDSRecord(ocid)
+    mainData, documents, items = FetchData(nog)
     newRecord = UpdateData(newRecord, mainData, documents, items)
     print( json.dumps(newRecord, indent = 4, sort_keys = True, default=json_serializer ) )
