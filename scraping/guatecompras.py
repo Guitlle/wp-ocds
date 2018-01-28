@@ -6,7 +6,7 @@ import datetime
 from bs4 import BeautifulSoup
 
 # Custom serializer that handles dates and datetimes
-def json_serializer(obj):
+def JSONSerializer(obj):
     """JSON serializer for objects not serializable by default json code
        Specially dates and datetimes.
     """
@@ -88,7 +88,7 @@ def GetEmptyOCDSRecord(id):
         }],
         "extensions":[
             "https://raw.githubusercontent.com/Guitlle/wp-ocds/ocmp_extension/schema.json",
-            "https://raw.githubusercontent.com/open-contracting/ocds_bid_extension/v1.1.1/extension.json"]
+            "https://raw.githubusercontent.com/open-contracting/ocds_bid_extension/v1.1.1/extension.json"
         ],
     }
     return data
@@ -127,7 +127,6 @@ def ParseUglyDate(fecha):
     """ Parse dates in the format '10.noviembre.2017 Hora:08:24:02 p.m.'
     These is the format used in guatecompras. Hopefully it won't change.
     """
-    print("parsing ugly date", fecha)
     matches = re.match("(\d*)\.(\w*)\.(\d*) Hora\:(\d*)\:(\d*):(\d*) ((p|a)\.m)", fecha)
     if matches is not None:
         try:
@@ -154,12 +153,12 @@ def ParseUglyDate(fecha):
             return None
     return None
 
-def ExtractHTMLFromUglyASPResponse(input):
+def ExtractHTMLFromUglyASPResponse(responseText):
     """ Extract the HTML from an ASP.NET response obtained from guatecompras.
     These ajax responses contain lots of fields that are apparently separated
     by | chars.
     """
-    lines = tab.text.splitlines()
+    lines = responseText.splitlines()
     htmlContent = ""
     flag = 0
     for line in lines:
@@ -181,6 +180,9 @@ def FetchData(NOG):
     This function returns a dictionary with raw data. This raw data shall
     be used later to build the ocds record
     """
+
+    response = {}
+
     # Obtener página principal
     url = "http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG)
     print("Fetching main webpage for tender with NOG ", NOG, "at ", url)
@@ -202,10 +204,11 @@ def FetchData(NOG):
 
     # Obtener las vistas parciales de las pestañas inferiores
     tabs = main_soup.find("div", id = "MasterGC_ContentBlockHolder_divContenidoTab").find_all("li", "rtsLI")
-    tabsNames = [tab.text for tab in tabsNames]
-
+    tabsNames = [tab.text for tab in tabs]
+    print("Tabs available for this record: ", tabsNames)
     # Primero va la vista parcial de documentos anexos:
     if "Tipos de anexo" in tabsNames:
+        print("Fetching \"Tipos de anexo\"")
         tabIndex = tabsNames.index("Tipos de anexo")
         formData = {
             "__VIEWSTATE" : main_soup.find(id = "__VIEWSTATE").get("value"),
@@ -238,15 +241,19 @@ def FetchData(NOG):
                         "responsible": data[2].text.strip()
                     })
             elif header[1].text == "SNIP":
-                data = table.find("td").text
+                data  = table.find("td").text
                 found = re.findall("SNIP\: (\d*)", data)
                 if len(found) == 1:
                     SNIP = found[0]
 
         details_data["snip"] = SNIP
+        response["documents"] = docs
+
+    response["base"]      = details_data
 
     # Fetch items information
     if "Tipos de Producto" in tabsNames:
+        print("Fetching \"Tipos de Producto\"")
         tabIndex = tabsNames.index("Tipos de Producto")
 
         formData["MasterGC_ContentBlockHolder_RadTabStrip1_ClientState"] = '{"selectedIndexes":["' + str(tabIndex) + '"],"logEntries":[],"scrollState":{}}',
@@ -264,9 +271,11 @@ def FetchData(NOG):
                 "quantity": data[1],
                 "unit": data[2]
             }
+        response["items"] = items
 
     # Awards and tenderers
     if "Proceso de Adjudicación" in tabsNames:
+        print("Fetching \"Proceso de Adjudicación\"")
         tabIndex = tabsNames.index("Proceso de Adjudicación")
 
         bids = []
@@ -301,12 +310,15 @@ def FetchData(NOG):
                 "contract": data[2].text.strip(),
                 "value": data[3].text.strip()
             })
+        response["awards"] = awards
+        response["bids"] = bids
 
     # Contracting
     if "Suscripción de contrato" in tabsNames:
+        print("Fetching \"Suscripción de contrato\"")
         tabIndex = tabsNames.index("Suscripción de contrato")
 
-        contractdocs = []
+        contractDocs = []
 
         formData["MasterGC_ContentBlockHolder_RadTabStrip1_ClientState"] = '{"selectedIndexes":["' + str(tabIndex) + '"],"logEntries":[],"scrollState":{}}',
         tab = requests.post("http://guatecompras.gt/concursos/consultaConcurso.aspx?nog={}&o=5".format(NOG), data = formData, headers = {
@@ -315,34 +327,31 @@ def FetchData(NOG):
         htmlcontent = ExtractHTMLFromUglyASPResponse(tab.text)
         tabData = BeautifulSoup(htmlcontent, "html.parser")
         fase1 = tabData.find("div", id= "MasterGC_ContentBlockHolder_wcuConsultaConcursoSucripcionContrato_acFaseContratacion")
-        titles = [t.text.strip() for t in fase1.find_all("b")]
-        links = [t.get("href") for t in fase1.find_all("a")]
-        for name, link in zip(titles, links):
-            contractdocs.append({
-                "name": name, "link": link, "fase": 1
-            })
+        if fase1 is not None:
+            titles = [t.text.strip() for t in fase1.find_all("b")]
+            links = [t.get("href") for t in fase1.find_all("a")]
+            for name, link in zip(titles, links):
+                contractDocs.append({
+                    "name": name, "link": link, "fase": 1
+                })
 
         fase2 = tabData.find("div", id= "MasterGC_ContentBlockHolder_wcuConsultaConcursoSucripcionContrato_divSuscipcionContrato")
-        for doc in fase2.find_all("tr", "FilaTablaDetalle")
-            data = doc.find_all("td")
-            contractdocs.append({
-                "name": "unknown", "link": data[6].find("a").get("href"), "fase": 2,
-                "supplierName": data[0].text.strip(),
-                "contractNumber": data[1].text.strip(),
-                "insuranceName": data[2].text.strip(),
-                "contractType": data[3].text.strip(),
-                "contractValue": data[4].text.strip(),
-                "insuranceValue": data[5].text.strip()
-            })
+        if fase2 is not None:
+            for doc in fase2.find_all("tr", "FilaTablaDetalle"):
+                data = doc.find_all("td")
+                contractDocs.append({
+                    "name": "unknown", "link": data[6].find("a").get("href"), "fase": 2,
+                    "supplierName": data[0].text.strip(),
+                    "contractNumber": data[1].text.strip(),
+                    "insuranceName": data[2].text.strip(),
+                    "contractType": data[3].text.strip(),
+                    "contractValue": data[4].text.strip(),
+                    "insuranceValue": data[5].text.strip()
+                })
 
-    return {
-        "base": details_data,
-        "documents": docs,
-        "items": items,
-        "bids": bids,
-        "awards": awards,
-        "contractdocs": contractdocs
-    }
+        response["contractDocs"] = contractDocs
+
+    return response
 
 def UpdateData(baseData, rawData):
     # Assume there is a NOG id
@@ -400,112 +409,152 @@ def UpdateData(baseData, rawData):
     if submethod.startswith("Sólo en papel"):
         baseData["releases"][0]["tender"]["submissionMethod"] = "written"
 
+    docsGlobalCounter = 1
 
     # Documents mapping
-    i = 0
-    for doc in rawData["documents"]:
-        doc = {
-            "description": "",
-            "format": "pdf",
-            "language": "es"
-            "id": i,
-            "title": doc["type"],
-            "url":  doc["link"]
-        }
-        if  doc["type"] == "Anuncio, convocatoria o invitación":
-            doc["documentType"] = "tenderNotice"
-            baseData["releases"][0]["tender"]["documents"].append(doc)
-        elif doc["type"] == "Bases, especificaciones generales o términos de referencia":
-            doc["documentType"] = "technicalSpecifications"
-            baseData["releases"][0]["tender"]["documents"].append(doc)
-        elif doc["type"] == "Boleta de SNIP":
-            doc["documentType"] = "projectPlan"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Criterio de calificación":
-            doc["documentType"] = "evaluationCriteria"
-            baseData["releases"][0]["tender"]["documents"].append(doc)
-        elif doc["type"] == "Dictamen de aprobación de estudio de factibilidad":
-            doc["documentType"] = "x_feasibilityStudyAssessment"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Dictamen de aprobación de impacto ambiental":
-            doc["documentType"] = "x_environmentalImpactAssessment"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Dictamen técnico":
-            doc["documentType"] = "x_technicalAssessment"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Diseño del Proyecto":
-            doc["documentType"] = "x_projectDesign"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Estudio de Factibilidad":
-            doc["documentType"] = "feasibilityStudy"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Estudio de impacto ambiental":
-            doc["documentType"] = "environmentalImpact"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Estudios, diseños o planos":
-            doc["documentType"] = "x_otherStudies"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Modelo de oferta (formulario)":
-            doc["documentType"] = "contractDraft"
-            baseData["releases"][0]["tender"]["documents"].append(doc)
-        elif doc["type"] == "Opinión jurídica":
-            doc["documentType"] = "x_legalOpinion"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Proyecto de bases":
-            doc["documentType"] = "procurementPlan"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
-        elif doc["type"] == "Resolución de aprobación de bases":
-            doc["documentType"] = "x_procurementApproval"
-            baseData["releases"][0]["tender"]["documents"].append(doc)
-        elif doc["type"] == "Selección de supervisor de la obra":
-            doc["documentType"] = "x_supervisorSelection"
-            baseData["releases"][0]["tender"]["documents"].append(doc)
-        elif doc["type"] == "Solicitud o requerimiento de bien, servicio o suministro":
-            doc["documentType"] = "needsAssessment"
-            baseData["releases"][0]["planning"]["documents"].append(doc)
+    if "documents" in rawData:
+        for doc in rawData["documents"]:
+            document = {
+                "description": "",
+                "language": "es",
+                "id": docsGlobalCounter,
+                "title": doc["type"],
+                "url":  BASE_GTC_URI + doc["link"]
+            }
+            if  doc["type"] == "Anuncio, convocatoria o invitación":
+                document["documentType"] = "tenderNotice"
+                baseData["releases"][0]["tender"]["documents"].append(document)
+            elif doc["type"] == "Bases, especificaciones generales o términos de referencia":
+                document["documentType"] = "technicalSpecifications"
+                baseData["releases"][0]["tender"]["documents"].append(document)
+            elif doc["type"] == "Boleta de SNIP":
+                document["documentType"] = "projectPlan"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Criterio de calificación":
+                document["documentType"] = "evaluationCriteria"
+                baseData["releases"][0]["tender"]["documents"].append(document)
+            elif doc["type"] == "Dictamen de aprobación de estudio de factibilidad":
+                document["documentType"] = "x_feasibilityStudyAssessment"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Dictamen de aprobación de impacto ambiental":
+                document["documentType"] = "x_environmentalImpactAssessment"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Dictamen técnico":
+                document["documentType"] = "x_technicalAssessment"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Diseño del Proyecto":
+                document["documentType"] = "x_projectDesign"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Estudio de Factibilidad":
+                document["documentType"] = "feasibilityStudy"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Estudio de impacto ambiental":
+                document["documentType"] = "environmentalImpact"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Estudios, diseños o planos":
+                document["documentType"] = "x_otherStudies"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Modelo de oferta (formulario)":
+                document["documentType"] = "contractDraft"
+                baseData["releases"][0]["tender"]["documents"].append(document)
+            elif doc["type"] == "Opinión jurídica":
+                document["documentType"] = "x_legalOpinion"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Proyecto de bases":
+                document["documentType"] = "procurementPlan"
+                baseData["releases"][0]["planning"]["documents"].append(document)
+            elif doc["type"] == "Resolución de aprobación de bases":
+                document["documentType"] = "x_procurementApproval"
+                baseData["releases"][0]["tender"]["documents"].append(document)
+            elif doc["type"] == "Selección de supervisor de la obra":
+                document["documentType"] = "x_supervisorSelection"
+                baseData["releases"][0]["tender"]["documents"].append(document)
+            elif doc["type"] == "Solicitud o requerimiento de bien, servicio o suministro":
+                document["documentType"] = "needsAssessment"
+                baseData["releases"][0]["planning"]["documents"].append(document)
 
-        i += 1
+            docsGlobalCounter += 1
 
     # Products types or items
-    baseData["releases"][0]["tender"]["items"].extend(rawData["items"])
+    if "items" in rawData:
+        baseData["releases"][0]["tender"]["items"].extend(rawData["items"])
 
     # bids
-    for bid in rawData["bids"]:
-        partyId = len(baseData["releases"][0]["parties"])
-        baseData["releases"][0]["parties"].append({
-            "id": partyId,
-            "name":  bid["supplierName"],
-            "details": {
-                "guatecompras_uri": BASE_GTC_URI + bid["supplierLink"]
-            }
-        })
-        baseData["releases"][0]["bids"].append({
-            "id": len(baseData["releases"][0]["bids"]),
-            "status": ,
-            "date": "",
-            "tenderers": [{ "id": partyId, "name": bid["supplierName"] }],
-            "value": {
-                "amount": float(bid["value"].replace(",", "")),
-                "currency": GTC_CURRENCY
-            }
-        })
-
-    for award in rawData["awards"]:
-        party =[p for p in baseData["releases"][0]["parties"] if p["name"] == award["supplierName"]]
-        if len(party) == 1:
-            baseData["releases"][0]["awards"].append({
-                "id": len(baseData["releases"][0]["awards"]),
-                "suppliers": [
-                    { "id": party[0]["id"], "name": party[0]["name"] }
-                ],
+    if "bids" in rawData:
+        for bid in rawData["bids"]:
+            partyId = len(baseData["releases"][0]["parties"])
+            baseData["releases"][0]["parties"].append({
+                "id": partyId,
+                "name":  bid["supplierName"],
+                "details": {
+                    "guatecompras_uri": BASE_GTC_URI + bid["supplierLink"]
+                }
+            })
+            baseData["releases"][0]["bids"]["details"].append({
+                "id": len(baseData["releases"][0]["bids"]["details"]),
+                "status": None,
+                "date": "",
+                "tenderers": [{ "id": partyId, "name": bid["supplierName"] }],
                 "value": {
-                    "amount": float(award["value"].replace(",", "")),
+                    "amount": float(bid["value"].replace(",", "")),
                     "currency": GTC_CURRENCY
                 }
             })
 
+    if "awards" in rawData:
+        for award in rawData["awards"]:
+            party =[p for p in baseData["releases"][0]["parties"] if p["name"] == award["supplierName"]]
+            if len(party) == 1:
+                baseData["releases"][0]["awards"].append({
+                    "id": len(baseData["releases"][0]["awards"]),
+                    "suppliers": [
+                        { "id": party[0]["id"], "name": party[0]["name"] }
+                    ],
+                    "value": {
+                        "amount": float(award["value"].replace(",", "")),
+                        "currency": GTC_CURRENCY
+                    }
+                })
+
     # Contracts documents
-    
+    if "contractDocs" in rawData:
+        for doc in rawData["contractDocs"]:
+            if doc["fase"] == 1:
+                baseData["releases"][0]["tender"]["documents"].append({
+                    "id": docsGlobalCounter,
+                    "documentType": "x_unknown",
+                    "title": doc["name"],
+                    "language": "es",
+                    "url": BASE_GTC_URI + doc["link"]
+                })
+            elif doc["fase"] == 2:
+                contractFound = [(i, c) for i, c in enumerate(baseData["releases"][0]["contracts"]) if c["id"] == doc["contractNumber"]]
+                awardFound = [aw["id"] for aw in baseData["releases"][0]["awards"] if aw["suppliers"][0]["name"] == doc["supplierName"]]
+                if len(contractFound) == 0:
+                    baseData["releases"][0]["contracts"].append({
+                        "id": doc["contractNumber"],
+                        "awardID": awardFound[0] if len(awardFound) > 0 else None,
+                        "value": {
+                            "amount": float(doc["contractValue"].replace(",", "")),
+                            "currency": GTC_CURRENCY
+                        },
+                        "documents": [{
+                            "id": docsGlobalCounter,
+                            "name": doc["link"],
+                            "url": BASE_GTC_URI + doc["link"],
+                            "language": "es",
+                            "documentType": "x_unknown"
+                        }]
+                    })
+                else:
+                    baseData["releases"][0]["contracts"][contractFound[0][0]]["documents"].append({
+                        "id": docsGlobalCounter,
+                        "name": doc["link"],
+                        "url": BASE_GTC_URI + doc["link"],
+                        "language": "es",
+                        "documentType": "x_unknown"
+                    })
+            docsGlobalCounter += 1
 
     return baseData
 
@@ -517,4 +566,4 @@ if __name__ == "__main__":
     newRecord = GetEmptyOCDSRecord(ocid)
     rawData = FetchData(nog)
     newRecord = UpdateData(newRecord, rawData)
-    print( json.dumps(newRecord, indent = 4, sort_keys = True, default=json_serializer ) )
+    print( json.dumps(newRecord, indent = 4, sort_keys = True, default=JSONSerializer ) )
