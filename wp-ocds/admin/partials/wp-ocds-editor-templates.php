@@ -107,6 +107,7 @@
             <div class="input-row"> <label>Id: </label> <span class="input"><input v-model.lazy="document.id" > </span></div>
             <div class="input-row"> <label>Título: </label> <span class="input"><input v-model="document.title" > </span></div>
             <div class="input-row"> <label>Descripción: </label> <span class="input"><input v-model.lazy="document.description" > </span></div>
+            <div class="input-row"> <label>Tipo de documento: </label> <span class="input"><input v-model="document.documentType" > </span></div>
             <div class="input-row"> <label>URL: </label> <span class="input"><input v-model.lazy="document.url" > </span></div>
             <div class="input-row"> <label>Fecha de publicación: </label> <span  class="input"><pikaday v-model="document.datePublished"></pikaday></span></div>
             <div class="input-row"> <label>Formato: </label> <span class="input"><input v-model.lazy="document.format" > </span></div>
@@ -300,33 +301,36 @@
                 @remove="removeObjectFromList(contract.milestones, index)">
             </ocds-milestone>
             <hr>
-            <h4>Transacciones  <button type="button" class="positive"  @click="ensureInsertObjectToList(contract.implementation, 'transactions', 'transaction')"> + Agregar transacción</button></h4>
-                <ocds-transaction
-                    v-for="(transaction, index) in contract.implementation.transactions"
-                    :value="transaction"
+            <h4>Información sobre implementación &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <button v-if="!contract.implementation" type="button" class="positive" @click="enableProperty(contract, 'implementation')"> + Habilitar</button></h4>
+            <template v-if="contract.implementation">
+                <h4>Transacciones  <button type="button" class="positive"  @click="ensureInsertObjectToList(contract.implementation, 'transactions', 'transaction')"> + Agregar transacción</button></h4>
+                    <ocds-transaction
+                        v-for="(transaction, index) in contract.implementation.transactions"
+                        :value="transaction"
+                        :index="index"
+                        :key="'contract-tx-'+transaction.id"
+                        :parties="parties"
+                        @remove="removeObjectFromList(contract.implementation.transactions, index)">
+                    </ocds-transaction>
+                <hr>
+                <h4>Metas completadas del contrato </h4>
+                <ocds-milestone
+                    v-for="(milestone, index) in contract.implementation.milestones"
+                    :value="milestone"
                     :index="index"
-                    :key="'contract-tx-'+transaction.id"
-                    :parties="parties"
-                    @remove="removeObjectFromList(contract.implementation.transactions, index)">
-                </ocds-transaction>
-            <hr>
-            <h4>Metas completadas del contrato </h4>
-            <ocds-milestone
-                v-for="(milestone, index) in contract.implementation.milestones"
-                :value="milestone"
-                :index="index"
-                :key="'contract-cmlst-'+milestone.id"
-                @remove="removeObjectFromList(contract.implementation.milestones, index)">
-            </ocds-milestone>
-            <hr>
-            <h4>Documentos sobre la implementación del contrato <button type="button" class="positive"  @click="ensureInsertObjectToList(contract.implementation, 'documents', 'document')"> + Agregar documento</button></h4>
-            <ocds-document
-                v-for="(document, index) in contract.implementation.documents"
-                :value="document"
-                :index="index"
-                :key="'contract-idocs-'+document.id"
-                @remove="removeObjectFromList(contract.implementation.documents, index)">
-            </ocds-document>
+                    :key="'contract-cmlst-'+milestone.id"
+                    @remove="removeObjectFromList(contract.implementation.milestones, index)">
+                </ocds-milestone>
+                <hr>
+                <h4>Documentos sobre la implementación del contrato <button type="button" class="positive"  @click="ensureInsertObjectToList(contract.implementation, 'documents', 'document')"> + Agregar documento</button></h4>
+                <ocds-document
+                    v-for="(document, index) in contract.implementation.documents"
+                    :value="document"
+                    :index="index"
+                    :key="'contract-idocs-'+document.id"
+                    @remove="removeObjectFromList(contract.implementation.documents, index)">
+                </ocds-document>
+            </template>
         </div>
     </div>
 </script>

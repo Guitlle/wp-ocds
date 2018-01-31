@@ -332,7 +332,10 @@ var OCDSObjectComponent = {
         },
         removeObject: function () {
             this.$emit("remove", this.index);
-        }
+        },
+        enableProperty: function (base, newProp) {
+            this.$set(base, newProp, {});
+        },
     },
     computed: {
         codes: function() {
@@ -469,7 +472,8 @@ function init_single_editor(data, id) {
         data: {
             vmodel: {
                 sortBy: "date",
-                expandedItems: {}
+                expandedItems: {},
+                fileName: ""
             },
             model: {
                 releases: [data],
@@ -483,6 +487,9 @@ function init_single_editor(data, id) {
         created: function () {
         },
         methods: {
+            enableProperty: function (base, newProp) {
+                this.$set(base, newProp, {});
+            },
             newRls: function () {
                 var newEntity = Vue.util.extend({}, this.defaults.release),
                     newIdx = this.model.releases.length;
@@ -536,9 +543,6 @@ function init_single_editor(data, id) {
                 this.model.releases[rlsIdx].releases[0][section].milestones.push(newDoc);
                 this.$set(this.vmodel.expandedItems, 'rls-'+rlsIdx+'/milestone-'+newIdx, true);
             },
-            addItem: function (rlsIdx, section) {
-
-            },
             addAward: function (rlsIdx) {
                 var newAward = Vue.util.extend({}, OCDS.defaults.award),
                     newIdx =  0;
@@ -550,6 +554,24 @@ function init_single_editor(data, id) {
                 }
                 this.model.releases[rlsIdx].releases[0].awards.push(newAward);
                 this.$set(this.vmodel.expandedItems, 'rls-'+rlsIdx+'/award-'+newIdx, true);
+            },
+            readJSONFile: function (evt) {
+                var file = this.$refs.fileInput.files[0];
+                this.vmodel.fileName = file.name;
+                var reader = new FileReader();
+                var start = 0;
+                var stop = file.size - 1;
+
+                var reader = new FileReader();
+                var that = this; // Save vue instance reference
+                reader.onloadend = function(readEvt) {
+                    if (readEvt.target.readyState == FileReader.DONE) {
+                        that.$set(that, "model",{ "releases": [JSON.parse(readEvt.target.result)]});
+                    }
+                };
+
+                var blob = file.slice(start, stop + 1);
+                reader.readAsBinaryString(blob);
             }
         },
         watch: {

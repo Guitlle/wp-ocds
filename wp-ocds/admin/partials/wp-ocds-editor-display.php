@@ -17,6 +17,7 @@
     <!-- <select v-model="vmodel.sortBy">
         <option value="date">Ordenar por fecha</option>
     </select> | <button type="button" class="positive" @click="newRls"> +  Nuevo subregistro</button> -->
+    <h4>Importar archivo JSON: <input @change="readJSONFile"  ref="fileInput" type="file" id="files" name="file" /> {{vmodel.fileName}}</h4>
     <div v-if="vmodel.sortBy=='date'">
         <div class="ocds-release-editor" v-for="releaseIdx in sortRlsByDate(model.releases)" >
             <h3>
@@ -90,15 +91,17 @@
                         </div>
                     </div>
                     <hr>
-                    <h4>Presupuesto</h4>
-                    <div class="input-row"> <label>Id: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.id" > </span></div>
-                    <div class="input-row"> <label>Descripción: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.description" > </span></div>
-                    <div class="input-row"> <label>Monto: </label>
-                        <ocds-amount v-model="model.releases[releaseIdx].releases[0].planning.budget.amount"></ocds-amount>
-                    </div>
-                    <div class="input-row"> <label>Nombre del proyecto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.project" > </span></div>
-                    <div class="input-row"> <label>Id del proyecto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.projectID" > </span></div>
-                    <div class="input-row"> <label>URI del presupuesto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.uri" > </span></div>
+                    <h4>Presupuesto &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <button v-if="!model.releases[releaseIdx].releases[0].planning.budget" type="button" class="positive" @click="enableProperty(model.releases[releaseIdx].releases[0].planning, 'budget')"> + Habilitar</button> </h4>
+                    <template v-if="model.releases[releaseIdx].releases[0].planning.budget">
+                        <div class="input-row"> <label>Id: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.id" > </span></div>
+                        <div class="input-row"> <label>Descripción: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.description" > </span></div>
+                        <div class="input-row"> <label>Monto: </label>
+                            <ocds-amount v-model="model.releases[releaseIdx].releases[0].planning.budget.amount"></ocds-amount>
+                        </div>
+                        <div class="input-row"> <label>Nombre del proyecto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.project" > </span></div>
+                        <div class="input-row"> <label>Id del proyecto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.projectID" > </span></div>
+                        <div class="input-row"> <label>URI del presupuesto: </label> <span class="input"><input v-model="model.releases[releaseIdx].releases[0].planning.budget.uri" > </span></div>
+                    </template>
                     <hr>
                     <h4>Documentos sobre la planificación <button type="button" class="positive"  @click="ensureInsertObjectToList(model.releases[releaseIdx].releases[0].planning, 'documents', 'document')"> + Agregar documento</button></h4>
                     <ocds-document
