@@ -34,37 +34,42 @@ class Wp_Ocds_API {
     }
 
     public function summary () {
-        $pagen = intval($pagen);
-        $args = array( "numberposts" => -1, "post_type" => "ocdsrecord" );
+        $pagen   = intval($pagen);
+        $args    = array( "numberposts" => -1, "post_type" => "ocdsrecord" );
         $records = get_posts( $args );
-        echo "{\"records\":[";
+        $response = array( "records" => array() );
         foreach ($records as $record) {
             $data = get_post_meta($record->ID, "wp-ocds-record-data");
-            $id = get_post_meta($record->ID, "wp-ocds-record-id");
+            $id   = get_post_meta($record->ID, "wp-ocds-record-id");
             try {
-                $data = json_decode($data);
+                $data  = json_decode($data[0]);
                 $value = 0;
-                foreach( $data[0]->releases[0]->awards as $adjudicacion ) {
+                foreach( $data->releases[0]->awards as $adjudicacion ) {
                     if ($adjudicacion->value->currency == "GTQ")
                         $value  += floatval($adjudicacion->value->amount);
                 }
 
                 $summary = array(
                     "coordinates" => array(
-                        "lat" => , "lon" => ),
-                    "municipality" => $data[0]->releases[0]->ocmp_extras->location->municipality,
-                    "name" => $data[0]->releases[0]->tender->title,
-                    "description" => $data[0]->releases[0]->tender->description,
-                    "value_gtq" => $value,
-                    "alcalde" => $data[0]->releases[0]->ocmp_extras->alcalde,
-                    "partido" => $data[0]->releases[0]->ocmp_extras->partido
+                        "lat"           => $data->releases[0]->ocmp_extras->location->lat,
+                        "lon"           => $data->releases[0]->ocmp_extras->location->lon ),
+                    "municipality"      => $data->releases[0]->ocmp_extras->location->municipality,
+                    "name"              => $data->releases[0]->tender->title,
+                    "description"       => $data->releases[0]->tender->description,
+                    "monto"             => $value,
+                    "alcalde"           => $data->releases[0]->ocmp_extras->alcalde,
+                    "partido"           => $data->releases[0]->ocmp_extras->partido,
+                    "avance_fisico"     => $data->releases[0]->ocmp_extras->progress->physical,
+                    "avance_financiero" => $data->releases[0]->ocmp_extras->progress->financial,
+                    "inicio_contrato"   => $data->releases[0]->contracts[0]->period->startDate,
+                    "final_contrato"    => $data->releases[0]->contracts[0]->period->endDate
                 );
-                echo json_encode($summary).",";
+                array_push($response["records"], $summary);
             } catch (Exception $e) {
                 continue;
             }
         }
-        echo "]}";
+        echo json_encode($response);
     }
 
     public function record( $id ) {
@@ -79,16 +84,16 @@ class Wp_Ocds_API {
     }
 
     public function records_page( $pagen ) {
-        $pagen = intval($pagen);
-        $args = array( "posts_per_page" => $this->per_page, "offset" => ($pagen-1) * $this->per_page, "post_type" => "ocdsrecord" );
+        $pagen   = intval($pagen);
+        $args    = array( "posts_per_page" => $this->per_page, "offset" => ($pagen-1) * $this->per_page, "post_type" => "ocdsrecord" );
         $records = get_posts( $args );
         echo "{\"next_page\": \"".$this->base_url."/records/page/".strval($pagen+1)."\", ".
              ( ($pagen > 1) ?"\"previous_page\": \"".$this->base_url."/records/page/".strval($pagen-1)."\", " : "").
              " \"records\":[";
         foreach ($records as $record) {
             $data = get_post_meta($record->ID, "wp-ocds-record-data");
-            $id = get_post_meta($record->ID, "wp-ocds-record-id");
-            echo $data[0].", ";
+            $id   = get_post_meta($record->ID, "wp-ocds-record-id");
+            echo  $data[0].", ";
         }
         echo "]}";
     }
@@ -124,7 +129,7 @@ class Wp_Ocds_API {
 }
 
 /* TODO: Use custom wordpress htaccess routes. For now, hardcode ugly php file. */
-$base = get_site_url() . "/wp-content/plugins/wp-ocds/ocds-api.php?";
-$api = new Wp_Ocds_API( $base );
+$base  = get_site_url() . "/wp-content/plugins/wp-ocds/ocds-api.php?";
+$api   = new Wp_Ocds_API( $base );
 $query = $_SERVER["QUERY_STRING"];
-$api->router($query);
+$api   ->router($query);
