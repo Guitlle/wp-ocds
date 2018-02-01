@@ -53,9 +53,10 @@ class Wp_Ocds_API {
                     "coordinates" => array(
                         "lat"           => $data->releases[0]->ocmp_extras->location->lat,
                         "lon"           => $data->releases[0]->ocmp_extras->location->lon ),
-                    "municipality"      => $data->releases[0]->ocmp_extras->location->municipality,
-                    "name"              => $data->releases[0]->tender->title,
-                    "description"       => $data->releases[0]->tender->description,
+                    "municipalidad"      => $data->releases[0]->ocmp_extras->location->municipality,
+                    "nombre"              => $data->releases[0]->tender->title,
+                    "descripcion"       => $data->releases[0]->tender->description,
+                    "proveedor"         => $data->releases[0]->awards[0]->suppliers[0]->name,
                     "monto"             => $value,
                     "alcalde"           => $data->releases[0]->ocmp_extras->alcalde,
                     "partido"           => $data->releases[0]->ocmp_extras->partido,
