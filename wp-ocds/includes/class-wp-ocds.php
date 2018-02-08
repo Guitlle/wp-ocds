@@ -58,7 +58,7 @@ class Wp_Ocds {
 	protected $version;
 
 
-	private $ocds_editor;
+	private $ocds_editor, $public_views;
 
 	/**
 	 * Define the core functionality of the plugin.
@@ -167,7 +167,7 @@ class Wp_Ocds {
 	 * @access   private
 	 */
 	private function define_public_hooks() {
-    	/* not implemented */
+		$this->public_views = new Wp_Ocds_Public( $this->get_plugin_name(), $this->get_version(), $this->loader );
 	}
 
 	/**

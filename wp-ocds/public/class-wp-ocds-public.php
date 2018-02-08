@@ -40,6 +40,8 @@ class Wp_Ocds_Public {
 	 */
 	private $version;
 
+	private $loader;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -47,11 +49,30 @@ class Wp_Ocds_Public {
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct( $plugin_name, $version, $loader ) {
 
 		$this->plugin_name = $plugin_name;
-		$this->version = $version;
+		$this->version     = $version;
+		$this->loader      = $loader;
 
+		$this->loader->add_filter("single_template", $this, "custom_single_view", 99);
+	}
+
+	public function custom_single_view($template) {
+	    global $post;
+
+	    // Is this a "my-custom-post-type" post?
+	    if ($post->post_type == "ocdsrecord"){
+
+	        //Your plugin path
+	        $plugin_path = plugin_dir_path( __FILE__ );
+			$template_name = 'templates/single_ocds_view.php';
+
+	        return $plugin_path . $template_name;
+	    }
+
+	    //This is not my custom post type, do nothing with $template
+	    return $template;
 	}
 
 	/**
