@@ -63,7 +63,8 @@ class Wp_Ocds_API {
                     "avance_fisico"     => $data->releases[0]->ocmp_extras->progress->physical,
                     "avance_financiero" => $data->releases[0]->ocmp_extras->progress->financial,
                     "inicio_contrato"   => $data->releases[0]->contracts[0]->period->startDate,
-                    "final_contrato"    => $data->releases[0]->contracts[0]->period->endDate
+                    "final_contrato"    => $data->releases[0]->contracts[0]->period->endDate,
+                    "fuentefinanciamiento" => $data->releases[0]->ocmp_extras->fuentefinanciamiento
                 );
                 array_push($response["records"], $summary);
             } catch (Exception $e) {
