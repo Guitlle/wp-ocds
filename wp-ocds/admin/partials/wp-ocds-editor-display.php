@@ -39,6 +39,9 @@
                             Latitud <input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.location.lat" > <br>
                             Longitud <input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.location.lon" >
                         </div></div>
+                        <div class="input-row"> <label>Vida útil de la obra: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.vida_util" > </span></div>
+                        <div class="input-row"> <label>Fecha de actualización de avances: </label> <span class="input"><pikaday v-model="model.releases[releaseIdx].releases[0].ocmp_extras.fecha_avances"></pikaday></span></div>
+                        <div class="input-row"> <label>Dinero ejecutado: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.progress.ejecutado" > </span></div>
                         <div class="input-row"> <label>Avance financiero (%): </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.progress.financial" > </span></div>
                         <div class="input-row"> <label>Avance físico (%): </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.progress.physical" > </span></div>
                         <div class="input-row"> <label>Alcalde a cargo: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.alcalde" > </span></div>

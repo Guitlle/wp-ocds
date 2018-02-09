@@ -69,27 +69,33 @@
                 </div>
             </div>
             <hr>
-            <h5> Identifier</h5>
-            <div class="input-row"> <label> Id: </label> <span class="input"><input v-model="party.identifier.id" > </span></div>
-            <div class="input-row"> <label> Legal Name: </label> <span class="input"><input v-model="party.identifier.legalName" > </span></div>
-            <div class="input-row"> <label> URI: </label> <span class="input"><input v-model="party.identifier.uri" > </span></div>
-            <div class="input-row"> <label> Scheme: </label> <span class="input"><input v-model="party.identifier.scheme" > </span></div>
-            <hr>
-            <h5>Dirección</h5>
-            <div class="input-row"> <label>Dirección: </label> <span class="input"><input v-model="party.address.streetAddress" > </span></div>
-            <div class="input-row"> <label>Localidad (Municipio): </label> <span class="input"><input v-model="party.address.locality" > </span></div>
-            <div class="input-row"> <label>Región (Departamento): </label> <span class="input"><input v-model="party.address.region" > </span></div>
-            <div class="input-row"> <label>Código Postal: </label> <span class="input"><input v-model="party.address.postalCode" > </span></div>
-            <div class="input-row"> <label>País: </label> <span class="input"><input v-model="party.address.countryName" > </span></div>
-            <hr>
-            <h5>Punto de Contacto<br><sub>(Unidad encargada del proceso de compra)</sub></h5>
-            <div class="input-row"> <label>Nombre: </label> <span class="input"><input v-model="party.contactPoint.name" > </span></div>
-            <div class="input-row"> <label>E-mail: </label> <span class="input"><input v-model="party.contactPoint.email" > </span></div>
-            <div class="input-row"> <label>Teléfono: </label> <span class="input"><input v-model="party.contactPoint.telephone" > </span></div>
-            <div class="input-row"> <label>Fax: </label> <span class="input"><input v-model="party.contactPoint.faxNumber" > </span></div>
-            <div class="input-row"> <label>Sitio Web: </label>
-            <span class="input"><input v-model="party.contactPoint.url" > </span></div>
-            <hr>
+            <h5> Identificación &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <button v-if="!party.identifier" type="button" class="positive" @click="enableProperty(party, 'identifier')"> + Habilitar</button></h5>
+            <template v-if="party.identifier">
+                <div class="input-row"> <label> Id: </label> <span class="input"><input v-model="party.identifier.id" > </span></div>
+                <div class="input-row"> <label> Legal Name: </label> <span class="input"><input v-model="party.identifier.legalName" > </span></div>
+                <div class="input-row"> <label> URI: </label> <span class="input"><input v-model="party.identifier.uri" > </span></div>
+                <div class="input-row"> <label> Scheme: </label> <span class="input"><input v-model="party.identifier.scheme" > </span></div>
+                <hr>
+            </template>
+            <h5>Dirección  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <button v-if="!party.address" type="button" class="positive" @click="enableProperty(party, 'address')"> + Habilitar</button></h5>
+            <template v-if="party.address">
+                <div class="input-row"> <label>Dirección: </label> <span class="input"><input v-model="party.address.streetAddress" > </span></div>
+                <div class="input-row"> <label>Localidad (Municipio): </label> <span class="input"><input v-model="party.address.locality" > </span></div>
+                <div class="input-row"> <label>Región (Departamento): </label> <span class="input"><input v-model="party.address.region" > </span></div>
+                <div class="input-row"> <label>Código Postal: </label> <span class="input"><input v-model="party.address.postalCode" > </span></div>
+                <div class="input-row"> <label>País: </label> <span class="input"><input v-model="party.address.countryName" > </span></div>
+                <hr>
+            </template>
+            <h5>Punto de Contacto  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <button v-if="!party.contactPoint" type="button" class="positive" @click="enableProperty(party, 'contactPoint')"> + Habilitar</button> <br><sub>(Unidad encargada del proceso de compra)</sub> </h5>
+            <template v-if="party.contactPoint">
+                <div class="input-row"> <label>Nombre: </label> <span class="input"><input v-model="party.contactPoint.name" > </span></div>
+                <div class="input-row"> <label>E-mail: </label> <span class="input"><input v-model="party.contactPoint.email" > </span></div>
+                <div class="input-row"> <label>Teléfono: </label> <span class="input"><input v-model="party.contactPoint.telephone" > </span></div>
+                <div class="input-row"> <label>Fax: </label> <span class="input"><input v-model="party.contactPoint.faxNumber" > </span></div>
+                <div class="input-row"> <label>Sitio Web: </label>
+                <span class="input"><input v-model="party.contactPoint.url" > </span></div>
+                <hr>
+            </template>
             <div class="input-row"> <label></label><span class="input"> <button class="negative" @click="show=false">Cerrar Sección &uarr; </button> </span></div>
         </div>
     </div>
