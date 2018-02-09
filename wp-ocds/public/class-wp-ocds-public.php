@@ -56,6 +56,7 @@ class Wp_Ocds_Public {
 		$this->loader      = $loader;
 
 		$this->loader->add_filter("single_template", $this, "custom_single_view", 99);
+		$this->loader->add_action( 'wp_enqueue_scripts', $this, 'enqueue_scripts' );
 	}
 
 	public function custom_single_view($template) {
@@ -76,19 +77,12 @@ class Wp_Ocds_Public {
 	}
 
 	/**
-	 * Register the stylesheets for the public-facing side of the site.
-	 *
-	 * @since    1.0.0
-	 */
-	public function enqueue_styles() {
-	}
-
-	/**
-	 * Register the JavaScript for the public-facing side of the site.
+	 * Register the JavaScript and CSS for the public-facing side of the site.
 	 *
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
+		wp_enqueue_style( "ocdsrecords", plugin_dir_url( __FILE__ ) . 'css/wp-ocds-public.css', array(), $this->version, 'all' );
 	}
 
 }

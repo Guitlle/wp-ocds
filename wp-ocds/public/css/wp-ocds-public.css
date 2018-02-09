@@ -1,4 +1,7 @@
-/**
- * All of the CSS for your public-facing functionality should be
- * included in this file.
- */
+.ocds-page-container {
+    text-align: center;
+    margin-top: 200px;
+    width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+}
