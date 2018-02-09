@@ -53,8 +53,8 @@ class Wp_Ocds_API {
                     "coordinates" => array(
                         "lat"           => $data->releases[0]->ocmp_extras->location->lat,
                         "lon"           => $data->releases[0]->ocmp_extras->location->lon ),
-                    "municipalidad"      => $data->releases[0]->ocmp_extras->location->municipality,
-                    "nombre"              => $data->releases[0]->tender->title,
+                    "municipalidad"     => $data->releases[0]->ocmp_extras->location->municipality,
+                    "nombre"            => $data->releases[0]->tender->title,
                     "descripcion"       => $data->releases[0]->tender->description,
                     "proveedor"         => $data->releases[0]->awards[0]->suppliers[0]->name,
                     "monto"             => $value,
@@ -64,13 +64,15 @@ class Wp_Ocds_API {
                     "avance_financiero" => $data->releases[0]->ocmp_extras->progress->financial,
                     "inicio_contrato"   => $data->releases[0]->contracts[0]->period->startDate,
                     "final_contrato"    => $data->releases[0]->contracts[0]->period->endDate,
-                    "fuentefinanciamiento" => $data->releases[0]->ocmp_extras->fuentefinanciamiento
+                    "fuentefinanciamiento" => $data->releases[0]->ocmp_extras->fuentefinanciamiento,
+                    "permalink"         => get_post_permalink($record->ID)
                 );
                 array_push($response["records"], $summary);
             } catch (Exception $e) {
                 continue;
             }
         }
+        header("Cache-Control: max-age=6000, public");
         echo json_encode($response);
     }
 
