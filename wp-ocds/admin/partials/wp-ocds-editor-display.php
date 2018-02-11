@@ -47,6 +47,7 @@
                         <div class="input-row"> <label>Alcalde a cargo: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.alcalde" > </span></div>
                         <div class="input-row"> <label>Partido político: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.partido" > </span></div>
                         <div class="input-row"> <label>Fuente de financiamiento: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.fuentefinanciamiento" > </span></div>
+                        <div class="input-row"> <label>Enlace a cámaras: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.camaras" > </span></div>
                         <hr>
                     </div>
                     <div v-else>
