@@ -52,21 +52,21 @@ function MultiPieChartMap() {
     // private
     var container, svg, map, features, options, selectedFeature = null, that = this, data = null;
     this.init = function (_map, _options) {
-        map = _map;
-        options = _options;
-        container = map.getContainer();
+        this.map = _map;
+        this.options = _options;
+        container = this.map.getContainer();
         svg = d3.select(container).append("svg");
-        map.on("zoom", updateCoords);
-        map.on("viewreset", updateCoords);
-        map.on("move", updateCoords);
-        map.on("moveend", updateCoords);
+        this.map.on("zoom", updateCoords);
+        this.map.on("viewreset", updateCoords);
+        this.map.on("move", updateCoords);
+        this.map.on("moveend", updateCoords);
         return this;
     };
     this.render = function (_data) {
         if (_data) data = _data;
         var legendWidget = d3.select(container).append("div").attr("class", "map-legend-container")
           .append("div").attr("class", "map-legend")
-          .selectAll("div").data(options.series);
+          .selectAll("div").data(that.options.series);
         var legendLabels = legendWidget.enter()
             .append("div")
         legendLabels
@@ -125,39 +125,39 @@ function MultiPieChartMap() {
         features.append("path")
             .attr({
                 "d": arcs.innerRadius(15).outerRadius(18.5).endAngle(2 * Math.PI),
-                "fill": options.series[0].bgcolor,
+                "fill": that.options.series[0].bgcolor,
                 "fill-opacity": 0.4
             });
         features.append("path")
             .attr({
-                "d": arcs.innerRadius(15).outerRadius(18.5).endAngle(function (d) {return (d[options.series[0].field]-0.25) * 2 * Math.PI;}),
-                "fill": options.series[0].color,
+                "d": arcs.innerRadius(15).outerRadius(18.5).endAngle(function (d) {return (d[that.options.series[0].field]-0.25) * 2 * Math.PI;}),
+                "fill": that.options.series[0].color,
                 "stroke-width": "1",
                 "stroke": "black"
             });
         features.append("path")
             .attr({
                 "d": arcs.innerRadius(11).outerRadius(14.5).endAngle(2 * Math.PI),
-                "fill": options.series[1].bgcolor,
+                "fill": that.options.series[1].bgcolor,
                 "fill-opacity": 0.4
             });
         features.append("path")
             .attr({
-                "d": arcs.innerRadius(11).outerRadius(14.5).endAngle(function (d) {return (d[options.series[1].field]-0.25)* 2 * Math.PI;}),
-                "fill": options.series[1].color,
+                "d": arcs.innerRadius(11).outerRadius(14.5).endAngle(function (d) {return (d[that.options.series[1].field]-0.25)* 2 * Math.PI;}),
+                "fill": that.options.series[1].color,
                 "stroke-width": "1",
                 "stroke": "black"
             });
         features.append("path")
             .attr({
                 "d": arcs.innerRadius(7).outerRadius(10.5).endAngle(2 * Math.PI),
-                "fill": options.series[2].bgcolor,
+                "fill": that.options.series[2].bgcolor,
                 "fill-opacity": 0.4
             });
         features.append("path")
             .attr({
-                "d": arcs.innerRadius(7).outerRadius(10.5).endAngle(function (d) {return (d[options.series[2].field]-0.25) * 2 * Math.PI;}),
-                "fill": options.series[2].color,
+                "d": arcs.innerRadius(7).outerRadius(10.5).endAngle(function (d) {return (d[that.options.series[2].field]-0.25) * 2 * Math.PI;}),
+                "fill": that.options.series[2].color,
                 "stroke-width": "1",
                 "stroke": "black"
             });
@@ -169,15 +169,15 @@ function MultiPieChartMap() {
         return this;
     };
     function featureClickHandler(d, i) {
-        map.setView(new L.LatLng(d.lat, d.lon), options.onSelectZoom, {animate: true});
+        that.map.setView(new L.LatLng(+d.lat + 0.0085, d.lon-0.006), that.options.onSelectZoom, {animate: true});
         d3.select(selectedFeature).attr("class", "");
         d3.select(this).attr("class", "selected-feature");
         selectedFeature = this;
         this.parentElement.appendChild(this);
-        if (options.onFeatureClick) options.onFeatureClick(d,i);
+        if (that.options.onFeatureClick) that.options.onFeatureClick(d,i);
     }
     function projectFeature(d) {
-        var point = map.latLngToContainerPoint(L.latLng(d.lat,d.lon))
+        var point = that.map.latLngToContainerPoint(L.latLng(d.lat,d.lon))
         return point;
     }
     function updateCoords() {
@@ -186,9 +186,14 @@ function MultiPieChartMap() {
         }
         return this;
     };
+
+    this.resetMapView = function() {
+        that.map.setView(new L.LatLng(that.options.center[0], that.options.center[1]), that.options.zoom);
+        d3.select("#ficha-mapa .inicio").style("display", "block");
+        d3.select("#ficha-mapa .contenido").style("display", "none");
+    }
     return this;
 }
-var initLat = 14.6, initLon = -90.5, initZoom = 10;
 function ObrasMapa (initLat, initLon, initZoom, dataURL, transformData) {
     var map = initMap({
         output: "ocmp-obras",
@@ -199,6 +204,8 @@ function ObrasMapa (initLat, initLon, initZoom, dataURL, transformData) {
     });
     var grafica = new MultiPieChartMap();
     grafica.init(map, {
+        center: [initLat, initLon],
+        zoom: initZoom,
         "series": [
             {
                 bgcolor: "#69F", color: "#4AC",
@@ -238,7 +245,7 @@ function ObrasMapa (initLat, initLon, initZoom, dataURL, transformData) {
         },
         onSelectZoom: 14
     });
-    d3.json("/open-contracting/wp-content/plugins/wp-ocds/ocds-api.php?/records/summary", function(data) {
+    d3.json(dataURL, function(data) {
         var preparedData = _.map(data.records, function(item) {
             var inicio = moment(item.inicio_contrato),
                 final = moment(item.final_contrato),
@@ -258,11 +265,9 @@ function ObrasMapa (initLat, initLon, initZoom, dataURL, transformData) {
             };
             return retItem;
         });
+        if (transformData)
+            preparedData = transformData(preparedData);
         grafica.render(preparedData);
     });
-    function resetMapView() {
-        map.setView(new L.LatLng(initLat, initLon), initZoom);
-        d3.select("#ficha-mapa .inicio").style("display", "block");
-        d3.select("#ficha-mapa .contenido").style("display", "none");
-    }
+    return grafica;
 }
