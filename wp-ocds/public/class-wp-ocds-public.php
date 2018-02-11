@@ -82,7 +82,8 @@ class Wp_Ocds_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-		wp_enqueue_style( "ocdsrecords", plugin_dir_url( __FILE__ ) . 'css/wp-ocds-public.css', array(), $this->version, 'all' );
+		wp_enqueue_style( "wp-ocds-public", plugin_dir_url( __FILE__ ) . 'css/wp-ocds-public.css', array(), $this->version, 'all' );
+		wp_enqueue_script( "map-ocds-ocmp", plugin_dir_url( __FILE__ ) . 'js/mapa-ocds-ocmp.js', array(), $this->version, FALSE );
 	}
 
 }
