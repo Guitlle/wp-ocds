@@ -41,6 +41,7 @@ class Wp_Ocds_API {
         foreach ($records as $record) {
             $data = get_post_meta($record->ID, "wp-ocds-record-data");
             $id   = get_post_meta($record->ID, "wp-ocds-record-id");
+
             try {
                 $data  = json_decode($data[0]);
                 $value = 0;
@@ -54,7 +55,7 @@ class Wp_Ocds_API {
                         "lat"           => $data->releases[0]->ocmp_extras->location->lat,
                         "lon"           => $data->releases[0]->ocmp_extras->location->lon ),
                     "municipalidad"     => $data->releases[0]->ocmp_extras->location->municipality,
-                    "nombre"            => $data->releases[0]->tender->title,
+                    "nombre"            => $record->post_title,
                     "descripcion"       => $data->releases[0]->tender->description,
                     "proveedor"         => $data->releases[0]->awards[0]->suppliers[0]->name,
                     "monto"             => $value,
@@ -88,16 +89,23 @@ class Wp_Ocds_API {
     }
 
     public function records_page( $pagen ) {
+        header('Content-Type: application/json; charset=utf-8');
         $pagen   = intval($pagen);
         $args    = array( "posts_per_page" => $this->per_page, "offset" => ($pagen-1) * $this->per_page, "post_type" => "ocdsrecord" );
         $records = get_posts( $args );
         echo "{\"next_page\": \"".$this->base_url."/records/page/".strval($pagen+1)."\", ".
              ( ($pagen > 1) ?"\"previous_page\": \"".$this->base_url."/records/page/".strval($pagen-1)."\", " : "").
              " \"records\":[";
+        $n = count($records);
+        $i = 0;
         foreach ($records as $record) {
+            $i ++;
             $data = get_post_meta($record->ID, "wp-ocds-record-data");
             $id   = get_post_meta($record->ID, "wp-ocds-record-id");
-            echo  $data[0].", ";
+            echo  $data[0];
+            if ($i < $n) {
+                echo ", ";
+            }
         }
         echo "]}";
     }
