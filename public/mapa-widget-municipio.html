@@ -31,23 +31,9 @@ crossorigin=""></script>
 var initLat = 14.71888888, initLon = -90.6441666, initZoom = 11, dataURL = "/open-contracting/wp-content/plugins/wp-ocds/ocds-api.php?/records/summary";
 
 var mapa = ObrasMapa(initLat, initLon, initZoom, dataURL, function (data) {
-    var avgLon = initLon, avgLat = initLat, counter = 0;
     data = data.filter(function (element, index, array) {
         return element.data.municipalidad.toLowerCase() == "san juan sacatepequez" || element.data.municipalidad.toLowerCase() == "san juan sacatepéquez";
     });
-
-    if (data.length==0) return [];
-
-    data.forEach(function (element, index) {
-        avgLon += +element.lon;
-        avgLat += +element.lat;
-    });
-    avgLon = avgLon / (data.length+1);
-    avgLat = avgLat / (data.length+1);
-
-    mapa.options.center = [avgLat, avgLon];
-
-    mapa.map.setView(new L.LatLng(avgLat, avgLon), 11);
     return data;
 });
 
