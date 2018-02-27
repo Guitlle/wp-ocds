@@ -147,6 +147,39 @@ if (property_exists($data->releases[0]->ocmp_extras->progress, "ejecutado") AND 
 		</div>
 	</div>
 
+	<div class="historias" style="margin-top: 100px;">
+		<hr>
+		<h2 style="padding-top: 75px;padding-bottom: 50px;">HISTORIAS</h2>
+		<?php
+		$args    = array(
+							"numberposts" => -1,
+							"post_type"   => "post",
+							"meta_key"    => "wp-ocds-related-record",
+							"meta_value"  => addslashes($id)
+						);
+		$records = get_posts( $args );
+		$response = array( "records" => array() );
+		$i = 0;
+		foreach ($records as $record) {
+			$i ++;
+			?>
+			<div class="historia">
+				<a href="<?php get_the_permalink($record->ID); ?>">
+					<div class="img_wrapper">
+						<?php echo get_the_post_thumbnail($record->ID, "medium_large"); ?>
+					</div>
+					<h3><?php echo $record->post_title; ?></h3>
+				</a>
+			</div>
+			<?php
+		}
+		if ($i == 0) {
+			?>
+			<h4>No hay historias disponibles.</h4>
+			<?php
+		}
+		?>
+	</div>
 </div>
 <?php endwhile; ?>
 <?php endif; ?>

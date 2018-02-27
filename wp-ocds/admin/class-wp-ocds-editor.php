@@ -58,8 +58,8 @@ class Wp_Ocds_Editor {
 
 		$this->loader->add_action( 'add_meta_boxes', $this, 'init_metabox' );
 
-		$this->loader->add_action( 'ocdsrecord_add_form_fields', $this, 'render_form', 10, 2 );
-        $this->loader->add_action( 'ocdsrecord_edit_form_fields', $this, 'render_form', 10, 2 );
+		#$this->loader->add_action( 'ocdsrecord_add_form_fields', $this, 'render_form', 10, 2 );
+        #$this->loader->add_action( 'ocdsrecord_edit_form_fields', $this, 'render_form', 10, 2 );
 		$this->loader->add_action( 'save_post', $this, 'save', 10, 2 );
 	}
 
@@ -87,6 +87,7 @@ class Wp_Ocds_Editor {
 
 	public function init_metabox() {
 		add_meta_box( 'ocds-meta-box-id', 'OCDS Record', array($this, render_form), 'ocdsrecord', 'normal', 'high' );
+		add_meta_box( 'ocds-fields', 'OCDS Record', array($this, render_post_form), 'post', 'normal', 'high' );
 	}
 
 	/**
@@ -107,6 +108,8 @@ class Wp_Ocds_Editor {
 			wp_enqueue_script( "moment", plugin_dir_url( __FILE__ ) . 'js/moment.min.js', array(), NULL, false );
 			wp_enqueue_script( "pikaday", plugin_dir_url( __FILE__ ) . 'js/pikaday.js', array(), NULL, false );
 			wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/wp-ocds-editor.js', array(), $this->version, false );
+		} else if ($current_screen->post_type === "post") {
+
 		}
 	}
 
@@ -122,7 +125,12 @@ class Wp_Ocds_Editor {
 			if (is_object($data)) {
 				update_post_meta($post_id, "wp-ocds-record-data", $_POST["wp_ocds_data"]);
 				update_post_meta($post_id, "wp-ocds-record-id", $data->releases[0]->id);
+				update_post_meta($post_id, "wp-ocds-record-municipality", $data->releases[0]->ocmp_extras->location->municipality );
+				update_post_meta($post_id, "wp-ocds-record-department", $data->releases[0]->ocmp_extras->location->department );
 			}
+		}
+		if (isset($_POST["wp_ocds_related_record"])) {
+			update_post_meta($post_id, "wp-ocds-related-record", $_POST["wp_ocds_related_record"]);
 		}
 	}
 
@@ -134,5 +142,24 @@ class Wp_Ocds_Editor {
 	public function render_form() {
 		include("partials/wp-ocds-editor-templates.php");
 		include("partials/wp-ocds-editor-display.php");
+	}
+
+	public function render_post_form() {
+		$args      = array( "numberposts" => -1, "post_type" => "ocdsrecord" );
+        $records   = get_posts( $args );
+        $response  = array( "records" => array() );
+		$selected  = get_post_meta(get_the_ID(), "wp-ocds-related-record", "");
+		?>
+		<h4> Obra relacionada a esta entrada: </h4>
+		<select name="wp_ocds_related_record" >
+			<option value=""> Ninguna </option>
+			<?php
+			foreach ($records as $record) {
+				$id   = get_post_meta($record->ID, "wp-ocds-record-id");
+				echo "<option value='{$record->ID}' ".($selected[0] == $record->ID? "selected": "")." >{$id[0]} - {$record->post_title}</option>";
+			}
+			?>
+		</select>
+		<?
 	}
 }
