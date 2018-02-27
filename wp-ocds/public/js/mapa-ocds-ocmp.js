@@ -262,7 +262,7 @@ function MultiPieChartMap() {
         // Redraw
         // Plot only non clustered items
         individualMarkers = _multiDonutChart(data.filter(function(item) { return !item.clustered;}), svg, arcs);
-        individualMarkers.append("rect").attr({
+        /*individualMarkers.append("rect").attr({
                 x: function (d) {return -d.titleWidth/2;},
                 y: 25,
                 width: function (d) {return d.titleWidth;},
@@ -281,11 +281,11 @@ function MultiPieChartMap() {
                 "font-size": 11,
                 "font-weight": "bold",
                 "text-anchor": "middle"
-            }).text(function (d) {return d.title;});
+            }).text(function (d) {return d.title;});*/
         // Now plot clusters:
         clusterMarkers = svg.selectAll("g.cluster").data(clusters);
         clusterMarkers.enter().append("g").classed("ocmp-marker-cluster", true);
-        clusterMarkers.append("rect").attr({
+        /*clusterMarkers.append("rect").attr({
                 x: -20,
                 y: 25,
                 width: 40,
@@ -304,7 +304,7 @@ function MultiPieChartMap() {
                 "font-size": 11,
                 "font-weight": "bold",
                 "text-anchor": "middle"
-            }).text(function (d) {return "Obras";});
+            }).text(function (d) {return "Obras";}); */
         clusterMarkers.append("circle").attr({
                 "r": 20,
                 "fill": "#DDD",
@@ -328,7 +328,7 @@ function MultiPieChartMap() {
                 for (var i=0; i< d3.min([d.dataPoints.length, 6]); i++) {
                     var start = i*0.8+offset+0.07;
                     var label = cluster.append("g").classed("label", true).attr("data-index", i);
-                    label.on("click", clusterTabClickHandler).classed("selected", i==0);
+                    label.on("mouseover", clusterTabShowHandler).classed("selected", i==0);
                     label.append("path")
                     .attr({
                         "d": arcs.innerRadius(19).outerRadius(34).startAngle(start).endAngle(start+0.65).cornerRadius(5),
@@ -354,7 +354,7 @@ function MultiPieChartMap() {
             });
         updateCoords();
     }
-    function clusterTabClickHandler(d) {
+    function clusterTabShowHandler(d) {
         var parent = d3.select(this.parentNode), element = d3.select(this);
         var index = element.attr("data-index");
         parent.selectAll(".label.selected").classed("selected", false);
