@@ -48,6 +48,7 @@
                         <div class="input-row"> <label>Partido político: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.partido" > </span></div>
                         <div class="input-row"> <label>Fuente de financiamiento: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.fuentefinanciamiento" > </span></div>
                         <div class="input-row"> <label>Enlace a cámaras: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.camaras" > </span></div>
+						<div class="input-row"> <label>Texto para la sección del enlace a la cámara: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.texto_camaras" > </span></div>
                         <div class="input-row"> <label>Descripción para el sitio web: </label> <span class="input"><input  v-model="model.releases[releaseIdx].releases[0].ocmp_extras.descripcion" > </span></div>
                         <hr>
                     </div>

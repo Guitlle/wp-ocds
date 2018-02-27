@@ -48,7 +48,11 @@ que cuando los proyectos son mayores de Q900,000,<br>
 la empresa contratada debe colocar un sistema de cámaras<br>
 que permita a la población observar el avance de la obra.<br>
 Haz click en el ícono de la cámara para ver la transmisión.</h5>
-
+			<h5 style="text-align: center;font-weight: normal;margin-top:1em;"><?php
+				if (property_exists($data->releases[0]->ocmp_extras, "texto_camaras")) {
+					echo $data->releases[0]->ocmp_extras->texto_camaras;
+				}
+				?></h5>
 		</div>
 	</div>
 	<div class="separator  transparent   " style="margin-top: 0px;margin-bottom: 75px;"></div>
