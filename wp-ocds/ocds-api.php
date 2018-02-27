@@ -34,7 +34,6 @@ class Wp_Ocds_API {
     }
 
     public function summary () {
-        $pagen   = intval($pagen);
         $args    = array( "numberposts" => -1, "post_type" => "ocdsrecord" );
         $records = get_posts( $args );
         $response = array( "records" => array() );
