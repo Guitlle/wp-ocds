@@ -168,7 +168,7 @@ if (property_exists($data->releases[0]->ocmp_extras->progress, "ejecutado") AND 
 			$i ++;
 			?>
 			<div class="historia">
-				<a href="<?php get_the_permalink($record->ID); ?>">
+				<a href="<?php echo get_post_permalink($record->ID); ?>">
 					<div class="img_wrapper">
 						<?php echo get_the_post_thumbnail($record->ID, "medium_large"); ?>
 					</div>
