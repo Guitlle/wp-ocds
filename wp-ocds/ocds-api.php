@@ -109,8 +109,61 @@ class Wp_Ocds_API {
         echo "]}";
     }
 
+    public function gen_csv() {
+        header('Content-Type: text/csv; charset=utf-8');
+        header("Cache-Control: max-age=6000, public");
+		header("Content-Disposition: inline; filename=\"ocdsgt.csv\"");
+        $pagen   = intval($pagen);
+        $args    = array( "numberposts" => -1, "post_type" => "ocdsrecord" );
+        $records = get_posts( $args );
+        function  procArray(&$input, &$output, $path) {
+            foreach ($input as $key => $val) {
+                if (is_array($val)) {
+                    procArray($input[$key], $output, empty($path) ? $key : $path.".".$key);
+                }
+                else {
+                    $output[empty($path)? $key : $path.".".$key] = $val;
+                }
+            }
+        }
+        $flatDatas = array();
+        $keys = array();
+        foreach ($records as $record) {
+            $i ++;
+            $datajson = get_post_meta($record->ID, "wp-ocds-record-data");
+            $id   = get_post_meta($record->ID, "wp-ocds-record-id");
+            $data = json_decode($datajson[0], TRUE);
+			$flatData = array();
+            procArray($data, $flatData, "");
+            array_push($flatDatas, $flatData);
+
+            $keys = array_merge($keys, array_diff(array_keys($flatData), $keys));
+        }
+        sort($keys, SORT_STRING);
+
+        echo implode(",", $keys)."\n\r";;
+        $nkeys = count($keys);
+        foreach ($flatDatas as $flatData) {
+            $i = 0;
+			foreach($keys as $key) {
+                $i++;
+				if (isset($flatData[$key])) {
+                    echo "\"".addslashes($flatData[$key])."\"";
+                }
+                else  {
+                    echo "";
+                }
+                if ($i < $nkeys) echo ",";
+            }
+            echo "\n\r";
+
+        }
+    }
+
     public function records_handler( $route ) {
         switch( $route[2] ) {
+            case "csv":
+                return $this->gen_csv();
             case "summary":
                 /* summary for map data */
                 return $this->summary();
