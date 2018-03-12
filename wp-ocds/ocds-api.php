@@ -72,11 +72,13 @@ class Wp_Ocds_API {
                 continue;
             }
         }
+		header('Content-Type: application/json; charset=utf-8');
         header("Cache-Control: max-age=6000, public");
         echo json_encode($response);
     }
 
     public function record( $id ) {
+		header('Content-Type: application/json; charset=utf-8');
         $searchArgs = array(
             "post_type"  => "ocdsrecord",
             "meta_key"   => "wp-ocds-record-id",
@@ -129,7 +131,6 @@ class Wp_Ocds_API {
         $flatDatas = array();
         $keys = array();
         foreach ($records as $record) {
-            $i ++;
             $datajson = get_post_meta($record->ID, "wp-ocds-record-data");
             $id   = get_post_meta($record->ID, "wp-ocds-record-id");
             $data = json_decode($datajson[0], TRUE);
@@ -144,9 +145,7 @@ class Wp_Ocds_API {
         echo implode(",", $keys)."\n\r";;
         $nkeys = count($keys);
         foreach ($flatDatas as $flatData) {
-            $i = 0;
 			foreach($keys as $key) {
-                $i++;
 				if (isset($flatData[$key])) {
                     echo "\"".addslashes($flatData[$key])."\"";
                 }
@@ -168,7 +167,7 @@ class Wp_Ocds_API {
                 /* summary for map data */
                 return $this->summary();
             case "page":
-                return $this->records_page(intval($route[2]));
+                return $this->records_page(intval($route[3]));
             default:
                 if (count($route) == 3) {
                     return $this->record($route[2]);
