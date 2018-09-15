@@ -339,6 +339,9 @@ function MultiPieChartMap() {
                         fill: "#444", "font-size": 10, "text-anchor": "middle", "font-weight": "bold"
                     }).text((more && i == 5)? "\267\267\267" : cluster_tabs[i]);
 
+                    // Reset arc corner radius (this was causing mis rendering.
+                    arcs.cornerRadius(0);
+
                     var wrapper = cluster.append("g").classed("chart_wrapper", true);
                     d.dataPoints[i].feature = _multiDonutChart([data[d.dataPoints[i].index]], wrapper, arcs);
                     d.dataPoints[i].feature.attr({
